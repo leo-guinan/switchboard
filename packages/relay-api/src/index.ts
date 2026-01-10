@@ -86,6 +86,58 @@ app.post("/feeds/:id/events", async (req, res) => {
   }
 
   try {
+    const existingById = await pool.query(
+      `SELECT id, feed_id, type, author_identity_id, source_platform, source_adapter_id, source_msg_id, ts, payload_json, refs_json
+       FROM events WHERE id = $1`,
+      [event.event_id]
+    );
+
+    if (existingById.rows.length > 0) {
+      const row = existingById.rows[0];
+      res.status(200).json({
+        event_id: row.id,
+        feed_id: row.feed_id,
+        type: row.type,
+        author_identity_id: row.author_identity_id,
+        source: {
+          platform: row.source_platform,
+          adapter_id: row.source_adapter_id,
+          source_msg_id: row.source_msg_id
+        },
+        ts: row.ts.toISOString(),
+        payload: row.payload_json,
+        refs: row.refs_json
+      });
+      return;
+    }
+
+    if (event.source.source_msg_id !== null) {
+      const existingBySource = await pool.query(
+        `SELECT id, feed_id, type, author_identity_id, source_platform, source_adapter_id, source_msg_id, ts, payload_json, refs_json
+         FROM events WHERE source_platform = $1 AND source_msg_id = $2`,
+        [event.source.platform, event.source.source_msg_id]
+      );
+
+      if (existingBySource.rows.length > 0) {
+        const row = existingBySource.rows[0];
+        res.status(200).json({
+          event_id: row.id,
+          feed_id: row.feed_id,
+          type: row.type,
+          author_identity_id: row.author_identity_id,
+          source: {
+            platform: row.source_platform,
+            adapter_id: row.source_adapter_id,
+            source_msg_id: row.source_msg_id
+          },
+          ts: row.ts.toISOString(),
+          payload: row.payload_json,
+          refs: row.refs_json
+        });
+        return;
+      }
+    }
+
     const result = await pool.query(
       `INSERT INTO events (id, feed_id, type, author_identity_id, source_platform, source_adapter_id, source_msg_id, ts, payload_json, refs_json)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
