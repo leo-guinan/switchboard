@@ -372,3 +372,15 @@ Thread: https://ampcode.com/threads/T-019ba98a-9736-741e-83c2-a29ff8a7c37c
   - Use process.argv.slice(2) to get command-line arguments in Node.js
   - Use process.exit(1) to indicate error/usage scenario
 ---
+
+## 2026-01-10 - US-007 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98b-a111-759d-99b4-e0340f26768a
+- Implemented directory structure creation in crp_init
+- Files modified:
+  - scripts/crp_init.ts (added fs/path imports, directory and .gitkeep creation)
+- Creates events/, snapshots/, policy/, .crp/ directories
+- Creates .gitkeep in events/ and snapshots/ for git tracking
+- **Learnings for future iterations:**
+  - Use fs.mkdirSync with { recursive: true } for idempotent directory creation
+  - .gitkeep files are empty files that allow git to track otherwise empty directories
+---

@@ -30,4 +30,24 @@ for (const dir of gitkeepDirs) {
   fs.writeFileSync(gitkeepPath, "");
 }
 
+const readmeContent = `# Context Repo
+
+This repository follows the **Context Repo Protocol (CRP) v0.1**.
+
+## Directory Layout
+
+| Directory | Purpose |
+|-----------|---------|
+| \`events/\` | Event files organized by feed and date |
+| \`snapshots/\` | State snapshots |
+| \`policy/\` | Access control policies |
+| \`.crp/\` | Repository metadata |
+
+For the full specification, see the CRP v0.1 documentation.
+`;
+
+const readmePath = path.join(targetDir, "README.md");
+fs.writeFileSync(readmePath, readmeContent);
+console.log("  Created README.md");
+
 console.log("Done.");
