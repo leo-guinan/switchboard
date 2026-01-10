@@ -171,3 +171,15 @@ Thread: https://ampcode.com/threads/T-019ba8bd-ae91-760d-85c0-b7438de22389
   - Use RETURNING clause in INSERT to get created row data including generated id and created_at
   - Use ?? null for optional JSONB parameters to avoid undefined
 ---
+
+## 2026-01-10 - US-002 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8bf-0962-7694-be62-60cd2414121c
+- Implemented GET /feeds/:id endpoint for retrieving feeds
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id route)
+- Returns 200 with { id, name, policy_json, created_at } if feed exists
+- Returns 404 with { error: "Feed not found" } if feed does not exist
+- **Learnings for future iterations:**
+  - Use SELECT with specific columns rather than SELECT * for explicit response shape
+  - Check result.rows.length === 0 for 404 detection
+---
