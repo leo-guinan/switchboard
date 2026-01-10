@@ -359,3 +359,16 @@ Thread: https://ampcode.com/threads/T-019ba989-a1cc-73c9-9fdf-5a8b8cdb9613
   - Documentation-only stories are straightforward - just update the markdown file
   - Use "reserved for future specification" language for features not yet implemented
 ---
+
+## 2026-01-10 - US-006 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98a-9736-741e-83c2-a29ff8a7c37c
+- Created crp_init script scaffold
+- Files created:
+  - scripts/crp_init.ts
+- Script accepts target directory as first argument
+- Prints usage if no path argument provided
+- Executable via `npx ts-node scripts/crp_init.ts <path>`
+- **Learnings for future iterations:**
+  - Use process.argv.slice(2) to get command-line arguments in Node.js
+  - Use process.exit(1) to indicate error/usage scenario
+---
