@@ -583,3 +583,16 @@ Thread: https://ampcode.com/threads/T-019ba99d-43cf-77bc-b810-c2bf397d1163
   - Use fs.mkdtempSync with os.tmpdir() for temp directories
   - Mirror process spawned with spawn(), not execSync, to run in background during test
 ---
+
+## 2026-01-10 - US-001 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9b7-0784-73c9-a189-fa774a9dea0c
+- Added GitHub configuration env vars to mirror-worker
+- Files modified:
+  - packages/mirror-worker/src/config.ts (added GitHubConfig interface, GITHUB_PAT/GITHUB_REPO_URL/GITHUB_BRANCH parsing, redactPat function)
+  - packages/mirror-worker/src/index.ts (added GitHub mode logging at startup with redacted PAT)
+- GitHub config is optional - if GITHUB_PAT or GITHUB_REPO_URL not set, runs in local-only mode
+- GITHUB_BRANCH defaults to "main" if not specified
+- **Learnings for future iterations:**
+  - GitHubConfig is a separate interface for clean optional typing
+  - redactPat() shows first 4 chars + *** for security
+---
