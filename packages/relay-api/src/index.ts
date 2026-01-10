@@ -94,6 +94,67 @@ app.get("/feeds/:id/stream", async (req, res) => {
   }
 });
 
+app.get("/feeds/:id/events", async (req, res) => {
+  const { id } = req.params;
+  const limitParam = req.query.limit;
+  const afterTs = req.query.after_ts;
+
+  try {
+    const feedResult = await pool.query(
+      `SELECT id FROM feeds WHERE id = $1`,
+      [id]
+    );
+
+    if (feedResult.rows.length === 0) {
+      res.status(404).json({ error: "Feed not found" });
+      return;
+    }
+
+    let limit = 50;
+    if (limitParam !== undefined) {
+      const parsed = parseInt(String(limitParam), 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        limit = Math.min(parsed, 100);
+      }
+    }
+
+    let query: string;
+    let params: (string | number)[];
+
+    if (afterTs !== undefined) {
+      query = `SELECT id, feed_id, type, author_identity_id, source_platform, source_adapter_id, source_msg_id, ts, payload_json, refs_json
+               FROM events WHERE feed_id = $1 AND ts > $2 ORDER BY ts ASC, id ASC LIMIT $3`;
+      params = [id, String(afterTs), limit];
+    } else {
+      query = `SELECT id, feed_id, type, author_identity_id, source_platform, source_adapter_id, source_msg_id, ts, payload_json, refs_json
+               FROM events WHERE feed_id = $1 ORDER BY ts ASC, id ASC LIMIT $2`;
+      params = [id, limit];
+    }
+
+    const result = await pool.query(query, params);
+
+    const events = result.rows.map((row) => ({
+      event_id: row.id,
+      feed_id: row.feed_id,
+      type: row.type,
+      author_identity_id: row.author_identity_id,
+      source: {
+        platform: row.source_platform,
+        adapter_id: row.source_adapter_id,
+        source_msg_id: row.source_msg_id
+      },
+      ts: row.ts.toISOString(),
+      payload: row.payload_json,
+      refs: row.refs_json
+    }));
+
+    res.status(200).json(events);
+  } catch (error) {
+    console.error("Failed to get events:", error);
+    res.status(500).json({ error: "Failed to get events" });
+  }
+});
+
 app.post("/feeds/:id/events", async (req, res) => {
   const { id } = req.params;
 
