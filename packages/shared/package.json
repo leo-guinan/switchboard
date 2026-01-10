@@ -2,9 +2,22 @@
   "name": "@switchboard/shared",
   "version": "0.0.1",
   "private": true,
-  "main": "index.ts",
-  "types": "index.ts",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {
     "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
   }
 }
