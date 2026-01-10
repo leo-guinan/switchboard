@@ -458,3 +458,17 @@ Thread: https://ampcode.com/threads/T-019ba994-5127-7111-bd27-69cc19f6c3f2
   - FEED_IDS is comma-separated and parsed with split/trim/filter
   - parseInt with radix 10 for numeric env vars
 ---
+
+## 2026-01-10 - US-003 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba995-3a1f-707d-9f41-8d9be3829cfa
+- Created SSE client module for connecting to relay feeds
+- Files created:
+  - packages/mirror-worker/src/sse.ts (connectToFeed function with EventSource)
+- Connects to {RELAY_URL}/feeds/{feed_id}/stream endpoint
+- Parses incoming SSE data messages as JSON and calls onEvent callback
+- Logs successful connection and errors to stdout
+- **Learnings for future iterations:**
+  - eventsource v2.x works with ES modules in Node.js
+  - Use es.onopen for connection success, es.onmessage for data, es.onerror for errors
+  - Return the EventSource instance to allow caller to manage lifecycle
+---
