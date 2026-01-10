@@ -163,3 +163,61 @@ The `permissions` object maps identities or roles to their access levels. The sp
 ### Policy Enforcement
 
 Policy enforcement is reserved for future specification. Implementations SHOULD read the policy file but MAY defer enforcement to a later version of CRP.
+
+## CI Guard
+
+This section documents how to enable CI protection for CRP-compliant repositories.
+
+### Canonical Rule
+
+**Files under `events/` are immutable.** Once an event file is committed to the repository, it MUST NOT be modified or deleted.
+
+### Why Events Are Immutable
+
+Event immutability is a core design principle of CRP for the following reasons:
+
+1. **Auditability** - Events form an audit log of everything that happened. Modifying or deleting events would undermine the integrity of this log and make it impossible to trust the historical record.
+
+2. **Replayability** - Systems that consume events often need to replay them to reconstruct state. If events can be modified, replay would produce inconsistent results depending on when replay occurred.
+
+3. **Append-only context** - The context repo serves as a shared context for agents and tools. Append-only semantics ensure all consumers see a consistent, growing log of events that never changes under their feet.
+
+### Enabling the CI Guard
+
+The CI guard is a GitHub Actions workflow that fails any pull request or push that modifies or deletes files in the `events/` directory.
+
+To enable the CI guard in your context repo:
+
+1. **Copy the check script** to your repository:
+   ```bash
+   mkdir -p scripts
+   cp docs/crp/workflows/../../../scripts/check-append-only.sh scripts/check-append-only.sh
+   chmod +x scripts/check-append-only.sh
+   ```
+
+2. **Copy the workflow file** to your GitHub workflows directory:
+   ```bash
+   mkdir -p .github/workflows
+   cp docs/crp/workflows/append-only-guard.yml .github/workflows/append-only-guard.yml
+   ```
+
+3. **Commit and push** the workflow:
+   ```bash
+   git add scripts/check-append-only.sh .github/workflows/append-only-guard.yml
+   git commit -m "Add append-only CI guard"
+   git push
+   ```
+
+4. **Verify** the workflow appears in your repository's Actions tab.
+
+After setup, any PR that attempts to modify or delete an existing event file will fail CI with a clear error message listing the offending files.
+
+### Automated Setup
+
+If you are using `crp_init` to initialize your context repo, you can pass the `--ci` flag to automatically set up the CI guard:
+
+```bash
+npx ts-node scripts/crp_init.ts /path/to/context-repo --ci
+```
+
+This will copy both the check script and the workflow file to your repository.

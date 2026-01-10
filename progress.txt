@@ -735,3 +735,17 @@ Thread: https://ampcode.com/threads/T-019ba9cc-5d03-71bc-881b-62caed2e8c1e
   - Use IFS=$'\t' to split tab-separated git diff output
   - Pattern match with `case` for bash path matching (e.g., events/*)
 ---
+
+## 2026-01-10 - US-002 (Milestone H5)
+Thread: https://ampcode.com/threads/T-019ba9cd-dc73-75bf-a623-ff611282a4dd
+- Created GitHub Actions workflow template for append-only guard
+- Files created:
+  - docs/crp/workflows/append-only-guard.yml
+- Workflow triggers on pull_request and push to main branch
+- Uses ubuntu-latest runner with fetch-depth: 0 for full history
+- Runs scripts/check-append-only.sh origin/main to validate events
+- **Learnings for future iterations:**
+  - GitHub Actions workflows for CRP context repos go in docs/crp/workflows/
+  - Use actions/checkout@v4 with fetch-depth: 0 for git diff operations
+  - Workflow name matches job purpose: "Append-Only Guard"
+---
