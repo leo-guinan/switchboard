@@ -1032,3 +1032,22 @@ Thread: https://ampcode.com/threads/T-019baa07-8f5c-703b-913b-2c950b09213e
   - Reuse existing EventCard and RawEventView components
   - Connection status shown with colored dot + text for clarity
 ---
+
+## 2026-01-10 - US-010 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa09-2835-747b-bc7b-2804636f82c1
+- Created MirrorStatus component for displaying mirror sync status
+- Files created:
+  - packages/viewer-web/src/components/MirrorStatus.tsx
+- Component features:
+  - Fetches from VITE_MIRROR_URL/health on mount
+  - Displays last_commit_sha (first 7 chars) using code styling
+  - Displays last_event_id with code styling
+  - Displays last_event_ts as relative time (e.g., "2 minutes ago")
+  - Shows "Mirror offline" with red styling if fetch fails
+  - Polls every 10 seconds for updates using setInterval
+  - Shows loading state while initial fetch in progress
+- **Learnings for future iterations:**
+  - Reuse formatRelativeTime pattern from EventCard for consistency
+  - Use setInterval with cleanup in useEffect for polling
+  - Distinguish between loading (null health, not offline) and offline (fetch failed) states
+---
