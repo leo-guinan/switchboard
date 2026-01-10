@@ -1,167 +1,141 @@
 {
   "project": "Switchboard",
-  "branchName": "ralph/milestone-h4",
-  "description": "Milestone H4 — Mirror Worker pushes to GitHub. Events appear in GitHub repo within 10-30 seconds.",
+  "branchName": "ralph/milestone-h5",
+  "description": "Milestone H5 — CI Append-Only Guard. PR that edits an event file fails CI.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Add GitHub configuration env vars",
-      "description": "As a developer, I want to configure GitHub push via environment variables.",
+      "title": "Create append-only check script",
+      "description": "As a developer, I need a script that detects modifications to event files.",
       "acceptanceCriteria": [
-        "GITHUB_PAT env var for Personal Access Token (optional, enables push)",
-        "GITHUB_REPO_URL env var for remote repository URL (optional, enables push)",
-        "GITHUB_BRANCH env var for target branch (optional, default: main)",
-        "Push is skipped if GITHUB_PAT or GITHUB_REPO_URL not set (local-only mode)",
-        "Config logged at startup with PAT redacted (shows first 4 chars + ***)",
+        "scripts/check-append-only.sh exists",
+        "Script takes base ref as argument (e.g., origin/main)",
+        "Uses git diff --name-status to list changed files",
+        "Checks for M (modified) or D (deleted) status on files under events/",
+        "Exits 0 if all event changes are A (added) or no event changes",
+        "Exits 1 with clear error message if any M or D found in events/",
+        "Lists offending files in error output",
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Configure git remote from env var",
-      "description": "As a developer, I want the mirror to configure the git remote automatically.",
+      "title": "Create GitHub Actions workflow template",
+      "description": "As a developer, I need a workflow template that context repos can copy.",
       "acceptanceCriteria": [
-        "src/git.ts exports configureRemote(repoPath, repoUrl, pat) function",
-        "Checks if origin remote exists using git remote get-url origin",
-        "If not exists, runs git remote add origin {url}",
-        "If exists but URL differs, runs git remote set-url origin {url}",
-        "URL format includes PAT: https://{PAT}@github.com/owner/repo.git",
+        "docs/crp/workflows/append-only-guard.yml exists",
+        "Workflow triggers on pull_request to main and push to main",
+        "Runs on ubuntu-latest",
+        "Checks out repo with fetch-depth: 0 (full history)",
+        "Runs scripts/check-append-only.sh origin/main",
+        "Workflow name is Append-Only Guard",
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-003",
-      "title": "Fetch and rebase before push",
-      "description": "As a developer, I want the mirror to fetch and rebase before pushing.",
+      "title": "Document CI guard in CRP spec",
+      "description": "As a developer, I need documentation on how to enable the guard.",
       "acceptanceCriteria": [
-        "src/git.ts exports fetchAndRebase(repoPath, branch) function",
-        "Runs git fetch origin {branch}",
-        "Runs git rebase origin/{branch} if local is behind",
-        "Returns true if rebase succeeds, false if it fails",
-        "If rebase fails, runs git rebase --abort and logs error",
+        "docs/crp/crp-v0.1.md updated with new CI Guard section",
+        "Documents the canonical rule in bold: Files under events/ are immutable",
+        "Explains why events are immutable (auditability, replayability, append-only context)",
+        "Provides step-by-step to copy workflow to .github/workflows/",
         "Typecheck passes"
       ],
       "priority": 3,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-004",
-      "title": "Append-only safety check",
-      "description": "As a developer, I want the mirror to fail if rebase would modify existing event files.",
+      "title": "Update crp_init with --ci flag",
+      "description": "As a developer, I want crp_init to optionally include the CI workflow.",
       "acceptanceCriteria": [
-        "src/git.ts exports checkAppendOnly(repoPath, branch) function",
-        "Runs git diff --name-status origin/{branch}..HEAD",
-        "Parses output for files in events/ directory",
-        "Returns true if all event file changes are A (added)",
-        "Returns false and logs error if any M (modified) or D (deleted) found",
+        "scripts/crp_init.ts accepts --ci flag",
+        "When --ci passed, creates .github/workflows/ directory",
+        "Copies append-only-guard.yml content to .github/workflows/append-only-guard.yml",
+        "Also copies check-append-only.sh to scripts/check-append-only.sh",
+        "Makes check-append-only.sh executable",
+        "Without --ci flag, does not create workflow or script",
         "Typecheck passes"
       ],
       "priority": 4,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-005",
-      "title": "Push to GitHub after commit",
-      "description": "As a developer, I want commits pushed to GitHub after each batch.",
+      "title": "Create test context repo on GitHub",
+      "description": "As a developer, I need a test repo to validate the guard works.",
       "acceptanceCriteria": [
-        "src/git.ts exports pushToRemote(repoPath, branch) function",
-        "Runs git push origin {branch}",
-        "Returns true on success, false on failure",
-        "Logs success: Pushed to GitHub",
-        "Logs error on failure but does not throw",
+        "Create new GitHub repo named switchboard-context-test (or similar)",
+        "Initialize locally with crp_init --git --ci",
+        "Push initial commit with workflow and script",
+        "Verify Actions tab shows Append-Only Guard workflow",
+        "Document repo URL in progress notes",
         "Typecheck passes"
       ],
       "priority": 5,
-      "passes": true,
-      "notes": ""
+      "passes": false,
+      "notes": "This story requires manual GitHub repo creation"
     },
     {
       "id": "US-006",
-      "title": "Integrate push into Committer",
-      "description": "As a developer, I want the Committer to push after each successful commit.",
+      "title": "Create passing test PR (add event)",
+      "description": "As a developer, I need a PR that adds an event to verify it passes CI.",
       "acceptanceCriteria": [
-        "Committer constructor accepts optional githubConfig with pat, repoUrl, branch",
-        "After git commit, if githubConfig provided: run checkAppendOnly, fetchAndRebase, pushToRemote",
-        "If checkAppendOnly fails, log error and skip push (don't crash)",
-        "If rebase fails, log error and skip push (retry next batch)",
-        "If push fails, log error and continue (retry next batch)",
+        "Create branch test/add-event in test context repo",
+        "Add new event file: events/test-feed/2026-01-10/test-event-1.json",
+        "Event file contains valid JSON matching event schema",
+        "Open PR against main",
+        "CI passes (green check on Append-Only Guard)",
+        "Merge the PR",
         "Typecheck passes"
       ],
       "priority": 6,
-      "passes": true,
-      "notes": ""
+      "passes": false,
+      "notes": "This story requires manual GitHub PR creation"
     },
     {
       "id": "US-007",
-      "title": "Single-writer lock file",
-      "description": "As a developer, I want a lock file to prevent multiple mirrors from thrashing.",
+      "title": "Create failing test PR (modify event)",
+      "description": "As a developer, I need a PR that modifies an event to verify it fails CI.",
       "acceptanceCriteria": [
-        "src/lock.ts exports acquireLock(repoPath) function",
-        "Creates/updates .crp/lock.json with instance_id (uuid), started_at, last_heartbeat",
-        "On startup, warns if lock exists with recent heartbeat (< 60s old)",
-        "Exports updateHeartbeat(repoPath) to update last_heartbeat timestamp",
-        "Lock is advisory (best-effort, not enforced)",
+        "Create branch test/modify-event from main (after add-event merged)",
+        "Modify the existing event file (change any field)",
+        "Open PR against main",
+        "CI fails (red X on Append-Only Guard)",
+        "Error message lists the modified file",
+        "Do NOT merge this PR",
         "Typecheck passes"
       ],
       "priority": 7,
-      "passes": true,
-      "notes": ""
+      "passes": false,
+      "notes": "This story requires manual GitHub PR creation"
     },
     {
       "id": "US-008",
-      "title": "Heartbeat timer for lock file",
-      "description": "As a developer, I want the lock file heartbeat updated periodically.",
+      "title": "Create failing test PR (delete event)",
+      "description": "As a developer, I need a PR that deletes an event to verify it fails CI.",
       "acceptanceCriteria": [
-        "Main index.ts starts heartbeat interval after acquiring lock",
-        "Heartbeat updates every 30 seconds",
-        "Heartbeat interval cleared on graceful shutdown",
-        "Lock file changes staged with git add before commits",
+        "Create branch test/delete-event from main",
+        "Delete the existing event file",
+        "Open PR against main",
+        "CI fails (red X on Append-Only Guard)",
+        "Error message lists the deleted file",
+        "Do NOT merge this PR",
         "Typecheck passes"
       ],
       "priority": 8,
-      "passes": true,
-      "notes": ""
-    },
-    {
-      "id": "US-009",
-      "title": "Wire up GitHub config in main",
-      "description": "As a developer, I want the main entry point to use GitHub config.",
-      "acceptanceCriteria": [
-        "Main reads GITHUB_PAT, GITHUB_REPO_URL, GITHUB_BRANCH from config",
-        "If GitHub config present, calls configureRemote on startup",
-        "Passes githubConfig to Committer constructor",
-        "Logs GitHub mode enabled with branch name (PAT redacted)",
-        "If GitHub config missing, logs local-only mode",
-        "Typecheck passes"
-      ],
-      "priority": 9,
-      "passes": true,
-      "notes": ""
-    },
-    {
-      "id": "US-010",
-      "title": "Integration test for GitHub push",
-      "description": "As a developer, I want a test that validates the GitHub push flow.",
-      "acceptanceCriteria": [
-        "Test creates temp git repo with remote (can use local bare repo as mock)",
-        "Test configures mirror with GITHUB_PAT and GITHUB_REPO_URL pointing to mock",
-        "Test posts event to relay",
-        "Test verifies commit was pushed to remote (git log on bare repo)",
-        "Test verifies event file exists in remote",
-        "Test passes",
-        "Typecheck passes"
-      ],
-      "priority": 10,
-      "passes": true,
-      "notes": ""
+      "passes": false,
+      "notes": "This story requires manual GitHub PR creation"
     }
   ]
 }

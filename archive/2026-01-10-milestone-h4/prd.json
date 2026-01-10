@@ -1,0 +1,167 @@
+{
+  "project": "Switchboard",
+  "branchName": "ralph/milestone-h4",
+  "description": "Milestone H4 — Mirror Worker pushes to GitHub. Events appear in GitHub repo within 10-30 seconds.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add GitHub configuration env vars",
+      "description": "As a developer, I want to configure GitHub push via environment variables.",
+      "acceptanceCriteria": [
+        "GITHUB_PAT env var for Personal Access Token (optional, enables push)",
+        "GITHUB_REPO_URL env var for remote repository URL (optional, enables push)",
+        "GITHUB_BRANCH env var for target branch (optional, default: main)",
+        "Push is skipped if GITHUB_PAT or GITHUB_REPO_URL not set (local-only mode)",
+        "Config logged at startup with PAT redacted (shows first 4 chars + ***)",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Configure git remote from env var",
+      "description": "As a developer, I want the mirror to configure the git remote automatically.",
+      "acceptanceCriteria": [
+        "src/git.ts exports configureRemote(repoPath, repoUrl, pat) function",
+        "Checks if origin remote exists using git remote get-url origin",
+        "If not exists, runs git remote add origin {url}",
+        "If exists but URL differs, runs git remote set-url origin {url}",
+        "URL format includes PAT: https://{PAT}@github.com/owner/repo.git",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Fetch and rebase before push",
+      "description": "As a developer, I want the mirror to fetch and rebase before pushing.",
+      "acceptanceCriteria": [
+        "src/git.ts exports fetchAndRebase(repoPath, branch) function",
+        "Runs git fetch origin {branch}",
+        "Runs git rebase origin/{branch} if local is behind",
+        "Returns true if rebase succeeds, false if it fails",
+        "If rebase fails, runs git rebase --abort and logs error",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Append-only safety check",
+      "description": "As a developer, I want the mirror to fail if rebase would modify existing event files.",
+      "acceptanceCriteria": [
+        "src/git.ts exports checkAppendOnly(repoPath, branch) function",
+        "Runs git diff --name-status origin/{branch}..HEAD",
+        "Parses output for files in events/ directory",
+        "Returns true if all event file changes are A (added)",
+        "Returns false and logs error if any M (modified) or D (deleted) found",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Push to GitHub after commit",
+      "description": "As a developer, I want commits pushed to GitHub after each batch.",
+      "acceptanceCriteria": [
+        "src/git.ts exports pushToRemote(repoPath, branch) function",
+        "Runs git push origin {branch}",
+        "Returns true on success, false on failure",
+        "Logs success: Pushed to GitHub",
+        "Logs error on failure but does not throw",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Integrate push into Committer",
+      "description": "As a developer, I want the Committer to push after each successful commit.",
+      "acceptanceCriteria": [
+        "Committer constructor accepts optional githubConfig with pat, repoUrl, branch",
+        "After git commit, if githubConfig provided: run checkAppendOnly, fetchAndRebase, pushToRemote",
+        "If checkAppendOnly fails, log error and skip push (don't crash)",
+        "If rebase fails, log error and skip push (retry next batch)",
+        "If push fails, log error and continue (retry next batch)",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Single-writer lock file",
+      "description": "As a developer, I want a lock file to prevent multiple mirrors from thrashing.",
+      "acceptanceCriteria": [
+        "src/lock.ts exports acquireLock(repoPath) function",
+        "Creates/updates .crp/lock.json with instance_id (uuid), started_at, last_heartbeat",
+        "On startup, warns if lock exists with recent heartbeat (< 60s old)",
+        "Exports updateHeartbeat(repoPath) to update last_heartbeat timestamp",
+        "Lock is advisory (best-effort, not enforced)",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Heartbeat timer for lock file",
+      "description": "As a developer, I want the lock file heartbeat updated periodically.",
+      "acceptanceCriteria": [
+        "Main index.ts starts heartbeat interval after acquiring lock",
+        "Heartbeat updates every 30 seconds",
+        "Heartbeat interval cleared on graceful shutdown",
+        "Lock file changes staged with git add before commits",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Wire up GitHub config in main",
+      "description": "As a developer, I want the main entry point to use GitHub config.",
+      "acceptanceCriteria": [
+        "Main reads GITHUB_PAT, GITHUB_REPO_URL, GITHUB_BRANCH from config",
+        "If GitHub config present, calls configureRemote on startup",
+        "Passes githubConfig to Committer constructor",
+        "Logs GitHub mode enabled with branch name (PAT redacted)",
+        "If GitHub config missing, logs local-only mode",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Integration test for GitHub push",
+      "description": "As a developer, I want a test that validates the GitHub push flow.",
+      "acceptanceCriteria": [
+        "Test creates temp git repo with remote (can use local bare repo as mock)",
+        "Test configures mirror with GITHUB_PAT and GITHUB_REPO_URL pointing to mock",
+        "Test posts event to relay",
+        "Test verifies commit was pushed to remote (git log on bare repo)",
+        "Test verifies event file exists in remote",
+        "Test passes",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": true,
+      "notes": ""
+    }
+  ]
+}
