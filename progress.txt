@@ -24,3 +24,14 @@ Thread: https://ampcode.com/threads/T-019ba8aa-f566-7095-942f-981eb1127ebd
   - TypeScript requires at least one .ts file to pass typecheck
   - Added packages/shared/index.ts as placeholder
 ---
+
+## 2026-01-10 - US-002
+Thread: https://ampcode.com/threads/T-019ba8ac-72b8-7469-a173-db217fe30342
+- Created infra and docs directories
+- Files created:
+  - infra/migrations/.gitkeep
+  - docs/prd/milestone-h0.md (placeholder)
+  - docs/crp/crp-v0.1.md (placeholder)
+- **Learnings for future iterations:**
+  - Simple directory scaffolding doesn't require additional patterns
+---
