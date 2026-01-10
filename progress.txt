@@ -35,3 +35,18 @@ Thread: https://ampcode.com/threads/T-019ba8ac-72b8-7469-a173-db217fe30342
 - **Learnings for future iterations:**
   - Simple directory scaffolding doesn't require additional patterns
 ---
+
+## 2026-01-10 - US-003
+Thread: https://ampcode.com/threads/T-019ba8ad-5ee7-7189-8d09-c09ea5b9e84b
+- Created shared package with Zod event schema
+- Files created/modified:
+  - packages/shared/package.json (with zod dependency)
+  - packages/shared/schema/event.ts (EventSchema, SourceSchema, and inferred types)
+  - packages/shared/index.ts (exports schema and types)
+- Removed packages/shared/schema/.gitkeep (no longer needed)
+- **Learnings for future iterations:**
+  - Use z.string().uuid() for UUID validation
+  - Use z.string().datetime() for ISO-8601 timestamp validation
+  - Use z.object({}).passthrough() for flexible objects that allow additional fields
+  - Sample event validation can be tested with node directly using require('zod')
+---
