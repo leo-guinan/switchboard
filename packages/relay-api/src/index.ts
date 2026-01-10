@@ -1,5 +1,6 @@
 import express from "express";
 import { pool, testConnection } from "./db.js";
+import { EventSchema } from "@switchboard/shared";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,73 @@ app.get("/feeds/:id", async (req, res) => {
   } catch (error) {
     console.error("Failed to get feed:", error);
     res.status(500).json({ error: "Failed to get feed" });
+  }
+});
+
+app.post("/feeds/:id/events", async (req, res) => {
+  const { id } = req.params;
+
+  const feedResult = await pool.query(
+    `SELECT id FROM feeds WHERE id = $1`,
+    [id]
+  );
+
+  if (feedResult.rows.length === 0) {
+    res.status(404).json({ error: "Feed not found" });
+    return;
+  }
+
+  const parsed = EventSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.issues });
+    return;
+  }
+
+  const event = parsed.data;
+
+  if (event.feed_id !== id) {
+    res.status(400).json({ error: "feed_id in body must match URL parameter" });
+    return;
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO events (id, feed_id, type, author_identity_id, source_platform, source_adapter_id, source_msg_id, ts, payload_json, refs_json)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id, feed_id, type, author_identity_id, source_platform, source_adapter_id, source_msg_id, ts, payload_json, refs_json`,
+      [
+        event.event_id,
+        event.feed_id,
+        event.type,
+        event.author_identity_id,
+        event.source.platform,
+        event.source.adapter_id,
+        event.source.source_msg_id,
+        event.ts,
+        event.payload,
+        event.refs ?? null
+      ]
+    );
+
+    const row = result.rows[0];
+    res.status(201).json({
+      event_id: row.id,
+      feed_id: row.feed_id,
+      type: row.type,
+      author_identity_id: row.author_identity_id,
+      source: {
+        platform: row.source_platform,
+        adapter_id: row.source_adapter_id,
+        source_msg_id: row.source_msg_id
+      },
+      ts: row.ts.toISOString(),
+      payload: row.payload_json,
+      refs: row.refs_json
+    });
+  } catch (error) {
+    console.error("Failed to ingest event:", error);
+    res.status(500).json({ error: "Failed to ingest event" });
   }
 });
 

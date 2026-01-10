@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS events (
     type TEXT NOT NULL,
     author_identity_id TEXT NOT NULL,
     source_platform TEXT NOT NULL,
+    source_adapter_id TEXT NOT NULL,
     source_msg_id TEXT,
     ts TIMESTAMP NOT NULL,
     payload_json JSONB NOT NULL,
