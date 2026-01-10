@@ -347,3 +347,15 @@ Thread: https://ampcode.com/threads/T-019ba988-91f4-767e-ae26-d25fe36094c7
   - Documentation aligns with EventSchema in packages/shared/schema/event.ts
   - Use markdown tables for clean field documentation
 ---
+
+## 2026-01-10 - US-005 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba989-a1cc-73c9-9fdf-5a8b8cdb9613
+- Documented Policy section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added Policy section with structure, members, permissions, example, enforcement note)
+- Policy section documents policy/policy.json structure with members array and permissions object
+- Notes that policy enforcement is reserved for future specification
+- **Learnings for future iterations:**
+  - Documentation-only stories are straightforward - just update the markdown file
+  - Use "reserved for future specification" language for features not yet implemented
+---
