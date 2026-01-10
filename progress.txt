@@ -561,3 +561,25 @@ Thread: https://ampcode.com/threads/T-019ba99b-a2e5-75e8-9387-e042cc074f5b
   - Clear pending reconnect timeouts when closing SSE connections
   - Signal handlers can use synchronous functions when operations are synchronous (flush uses execSync)
 ---
+
+## 2026-01-10 - US-010 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba99d-43cf-77bc-b810-c2bf397d1163
+- Created integration test for mirror worker flow
+- Files created:
+  - packages/mirror-worker/src/__tests__/integration.test.ts
+- Files modified:
+  - packages/mirror-worker/package.json (added vitest, @switchboard/shared, test scripts)
+- Test workflow:
+  1. Creates temp directory for CONTEXT_REPO_PATH
+  2. Creates feed via POST /feeds
+  3. Initializes git repo with user config in temp dir
+  4. Starts mirror process with configured environment
+  5. Posts 3 events to relay API
+  6. Verifies 3 event files exist in correct CRP paths (events/{feed_id}/{YYYY-MM-DD}/{event_id}.json)
+  7. Verifies git log contains "Mirror:" commit message
+- **Learnings for future iterations:**
+  - Integration tests require live relay API server (docker compose up)
+  - Temp directories need git user config (user.email, user.name) before commits work
+  - Use fs.mkdtempSync with os.tmpdir() for temp directories
+  - Mirror process spawned with spawn(), not execSync, to run in background during test
+---
