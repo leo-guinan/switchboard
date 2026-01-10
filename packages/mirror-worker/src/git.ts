@@ -54,6 +54,41 @@ export function configureRemote(repoPath: string, repoUrl: string, pat: string):
  * Fetch from origin and rebase local commits on top.
  * Returns true if successful, false if rebase fails (and aborts rebase).
  */
+/**
+ * Check that all event file changes are append-only (no modifications or deletions).
+ * Returns true if all event file changes are additions (A status).
+ * Returns false if any modifications (M) or deletions (D) found.
+ */
+export function checkAppendOnly(repoPath: string, branch: string): boolean {
+  let diffOutput: string;
+  
+  try {
+    diffOutput = execSync(`git diff --name-status origin/${branch}..HEAD`, {
+      cwd: repoPath,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  } catch (err) {
+    console.error(`Failed to get diff against origin/${branch}:`, err);
+    return false;
+  }
+
+  const lines = diffOutput.trim().split("\n").filter(line => line.length > 0);
+  
+  for (const line of lines) {
+    const [status, filePath] = line.split("\t");
+    
+    if (filePath && filePath.startsWith("events/")) {
+      if (status !== "A") {
+        console.error(`Append-only check failed: ${status} ${filePath} (only additions allowed)`);
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export function fetchAndRebase(repoPath: string, branch: string): boolean {
   try {
     execSync(`git fetch origin ${branch}`, {
