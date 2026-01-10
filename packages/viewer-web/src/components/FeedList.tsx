@@ -18,9 +18,7 @@ export function FeedList({ onSelectFeed, selectedFeedId }: FeedListProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const relayUrl = import.meta.env.VITE_RELAY_URL || "http://localhost:3000";
-    
-    fetch(`${relayUrl}/feeds`)
+    fetch("/api/feeds")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch feeds: ${res.status}`);

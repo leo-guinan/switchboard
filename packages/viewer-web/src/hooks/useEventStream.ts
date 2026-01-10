@@ -48,8 +48,7 @@ export function useEventStream(feedId: string | null): UseEventStreamResult {
     setEvents([]);
     setError(null);
 
-    const relayUrl = import.meta.env.VITE_RELAY_URL || "http://localhost:3000";
-    const streamUrl = `${relayUrl}/feeds/${feedId}/stream`;
+    const streamUrl = `/api/feeds/${feedId}/stream`;
 
     const eventSource = new EventSource(streamUrl);
     eventSourceRef.current = eventSource;

@@ -38,10 +38,8 @@ export function MirrorStatus() {
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
-    const mirrorUrl = import.meta.env.VITE_MIRROR_URL || "http://localhost:3001";
-
     const fetchHealth = () => {
-      fetch(`${mirrorUrl}/health`)
+      fetch("/mirror/health")
         .then((res) => {
           if (!res.ok) {
             throw new Error(`Failed to fetch health: ${res.status}`);
