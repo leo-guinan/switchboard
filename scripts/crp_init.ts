@@ -50,4 +50,13 @@ const readmePath = path.join(targetDir, "README.md");
 fs.writeFileSync(readmePath, readmeContent);
 console.log("  Created README.md");
 
+const policyContent = {
+  members: [],
+  permissions: {},
+};
+
+const policyPath = path.join(targetDir, "policy", "policy.json");
+fs.writeFileSync(policyPath, JSON.stringify(policyContent, null, 2) + "\n");
+console.log("  Created policy/policy.json");
+
 console.log("Done.");
