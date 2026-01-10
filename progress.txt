@@ -214,3 +214,18 @@ Thread: https://ampcode.com/threads/T-019ba8c2-5c69-74d9-9cd6-9ddd37fbaad3
   - Only check source-based dedup when source_msg_id is not null (matches partial unique index)
   - Return 200 for existing events, 201 for newly created
 ---
+
+## 2026-01-10 - US-005 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c3-af40-740e-b11d-615bd184b4bf
+- Implemented GET /feeds/:id/stream SSE endpoint
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id/stream route)
+- Returns 404 if feed does not exist
+- Sets SSE headers: Content-Type: text/event-stream, Cache-Control: no-cache, Connection: keep-alive
+- Uses flushHeaders() to send headers immediately
+- Listens for req.on("close") to detect client disconnect
+- **Learnings for future iterations:**
+  - Use res.flushHeaders() after setting SSE headers to send them immediately
+  - SSE requires: text/event-stream content-type, no-cache, keep-alive headers
+  - Use req.on("close") to detect when client disconnects
+---
