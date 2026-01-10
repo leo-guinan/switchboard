@@ -596,3 +596,15 @@ Thread: https://ampcode.com/threads/T-019ba9b7-0784-73c9-a189-fa774a9dea0c
   - GitHubConfig is a separate interface for clean optional typing
   - redactPat() shows first 4 chars + *** for security
 ---
+
+## 2026-01-10 - US-002 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9b9-0dd9-775a-8457-8dc9f5666c8f
+- Created src/git.ts with configureRemote(repoPath, repoUrl, pat) function
+- Checks for existing origin using git remote get-url origin
+- Adds remote if not exists, updates if URL differs
+- Uses URL class to embed PAT: https://{PAT}@github.com/owner/repo.git
+- **Learnings for future iterations:**
+  - Use new URL() to parse and modify repository URLs safely
+  - execSync with stdio: ["pipe", "pipe", "pipe"] captures errors without logging to console
+  - Check for null after try/catch to distinguish between missing remote and existing one
+---
