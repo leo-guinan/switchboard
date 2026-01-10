@@ -2,7 +2,10 @@ import { getConfig, redactPat } from "./config.js";
 import { initRepo, writeEvent } from "./repo.js";
 import { Committer } from "./committer.js";
 import { connectToFeed, SSEConnection } from "./sse.js";
+import { acquireLock, updateHeartbeat } from "./lock.js";
 import type { Event } from "@switchboard/shared";
+
+const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
 
 async function main(): Promise<void> {
   const config = getConfig();
@@ -22,6 +25,11 @@ async function main(): Promise<void> {
 
   await initRepo(config.contextRepoPath);
 
+  acquireLock(config.contextRepoPath);
+  const heartbeatInterval = setInterval(() => {
+    updateHeartbeat(config.contextRepoPath);
+  }, HEARTBEAT_INTERVAL_MS);
+
   const committer = new Committer(
     config.contextRepoPath,
     config.commitBatchSize,
@@ -40,6 +48,8 @@ async function main(): Promise<void> {
 
   function shutdown(): void {
     console.log("[Mirror] Shutdown signal received, cleaning up...");
+
+    clearInterval(heartbeatInterval);
 
     for (const connection of connections) {
       connection.close();

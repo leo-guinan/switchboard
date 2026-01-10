@@ -659,3 +659,17 @@ Thread: https://ampcode.com/threads/T-019ba9bd-8701-74d8-afa9-abfdc9dd889b
   - Push is triggered after commit(), not before
   - Each step (checkAppendOnly, fetchAndRebase, pushToRemote) returns early on failure
 ---
+
+## 2026-01-10 - US-007 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9be-ea6e-75fb-99ba-70e3aa55cd36
+- Created src/lock.ts with acquireLock() and updateHeartbeat() functions
+- Files created:
+  - packages/mirror-worker/src/lock.ts
+- acquireLock(repoPath) creates .crp/lock.json with instance_id (uuid), started_at, last_heartbeat
+- Warns if existing lock has heartbeat < 60s old (another instance may be running)
+- updateHeartbeat(repoPath) updates the last_heartbeat timestamp in the lock file
+- Lock is advisory (best-effort, not enforced)
+- **Learnings for future iterations:**
+  - Use randomUUID() from crypto module for uuid generation
+  - 60 second threshold matches the heartbeat update interval
+---
