@@ -50,3 +50,14 @@ Thread: https://ampcode.com/threads/T-019ba8ad-5ee7-7189-8d09-c09ea5b9e84b
   - Use z.object({}).passthrough() for flexible objects that allow additional fields
   - Sample event validation can be tested with node directly using require('zod')
 ---
+
+## 2026-01-10 - US-004
+Thread: https://ampcode.com/threads/T-019ba8af-0150-751a-be29-a0b00ed57221
+- Created database migration for feeds table
+- Files created:
+  - infra/migrations/001_create_feeds.sql
+- **Learnings for future iterations:**
+  - Use CREATE TABLE IF NOT EXISTS for idempotent migrations
+  - gen_random_uuid() is the Postgres function for default UUID generation
+  - JSONB is the preferred type for JSON columns in Postgres
+---
