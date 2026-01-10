@@ -3,6 +3,7 @@ import { initRepo, writeEvent } from "./repo.js";
 import { Committer } from "./committer.js";
 import { connectToFeed, SSEConnection } from "./sse.js";
 import { acquireLock, updateHeartbeat } from "./lock.js";
+import { configureRemote } from "./git.js";
 import type { Event } from "@switchboard/shared";
 
 const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
@@ -25,6 +26,10 @@ async function main(): Promise<void> {
 
   await initRepo(config.contextRepoPath);
 
+  if (config.github) {
+    configureRemote(config.contextRepoPath, config.github.repoUrl, config.github.pat);
+  }
+
   acquireLock(config.contextRepoPath);
   const heartbeatInterval = setInterval(() => {
     updateHeartbeat(config.contextRepoPath);
@@ -33,7 +38,8 @@ async function main(): Promise<void> {
   const committer = new Committer(
     config.contextRepoPath,
     config.commitBatchSize,
-    config.commitBatchTimeoutMs
+    config.commitBatchTimeoutMs,
+    config.github
   );
 
   const connections: SSEConnection[] = [];
