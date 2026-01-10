@@ -229,3 +229,17 @@ Thread: https://ampcode.com/threads/T-019ba8c3-af40-740e-b11d-615bd184b4bf
   - SSE requires: text/event-stream content-type, no-cache, keep-alive headers
   - Use req.on("close") to detect when client disconnects
 ---
+
+## 2026-01-10 - US-006 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c4-c26e-7727-9744-e30c13e38514
+- Created in-memory pub/sub module for SSE broadcast
+- Files created:
+  - packages/relay-api/src/pubsub.ts
+- Exports: subscribe(feedId, callback), unsubscribe(feedId, callback), publish(feedId, event)
+- Uses Node.js EventEmitter internally with feedId as event channel
+- Tracks subscribers in a Map<string, Set<Subscriber>> for clean unsubscribe
+- **Learnings for future iterations:**
+  - EventEmitter is built-in to Node.js, no external dependency needed
+  - Use emitter.on() to subscribe and emitter.off() to unsubscribe
+  - Store callbacks in a Set to allow proper cleanup on disconnect
+---

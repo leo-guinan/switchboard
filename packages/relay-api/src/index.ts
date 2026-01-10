@@ -1,6 +1,7 @@
 import express from "express";
 import { pool, testConnection } from "./db.js";
 import { EventSchema } from "@switchboard/shared";
+import { subscribe, unsubscribe, publish } from "./pubsub.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -77,7 +78,14 @@ app.get("/feeds/:id/stream", async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
+    const onEvent = (event: Record<string, unknown>) => {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    subscribe(id, onEvent);
+
     req.on("close", () => {
+      unsubscribe(id, onEvent);
       res.end();
     });
   } catch (error) {
@@ -185,7 +193,7 @@ app.post("/feeds/:id/events", async (req, res) => {
     );
 
     const row = result.rows[0];
-    res.status(201).json({
+    const storedEvent = {
       event_id: row.id,
       feed_id: row.feed_id,
       type: row.type,
@@ -198,7 +206,11 @@ app.post("/feeds/:id/events", async (req, res) => {
       ts: row.ts.toISOString(),
       payload: row.payload_json,
       refs: row.refs_json
-    });
+    };
+
+    publish(id, storedEvent);
+
+    res.status(201).json(storedEvent);
   } catch (error) {
     console.error("Failed to ingest event:", error);
     res.status(500).json({ error: "Failed to ingest event" });
