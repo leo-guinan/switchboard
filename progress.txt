@@ -1068,3 +1068,28 @@ Thread: https://ampcode.com/threads/T-019baa0a-af0b-76af-8165-202298b44f82
   - Use flex-col for mobile-first, md:flex-row for desktop sidebar layout
   - Import ViewMode type from ViewToggle component for state typing
 ---
+
+## 2026-01-10 - US-012 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa0b-c78d-71e1-b40a-ae088f97d10c
+- Added viewer-web to docker-compose
+- Files created:
+  - packages/viewer-web/Dockerfile (multi-stage build with nginx)
+- Files modified:
+  - infra/docker-compose.yml (added viewer-web service)
+- Dockerfile features:
+  - Uses node:22-alpine for build stage
+  - Builds shared package first (viewer-web dependency)
+  - Uses nginx:alpine for production serving
+  - Custom nginx config for SPA routing (try_files for index.html fallback)
+  - Exposes port 5173
+- Docker-compose features:
+  - viewer-web service with build context at repo root
+  - Build args for VITE_RELAY_URL and VITE_MIRROR_URL (http://localhost:3000/3001)
+  - Port mapping 5173:5173
+  - Depends on relay-api service
+- **Learnings for future iterations:**
+  - VITE_* env vars are build-time for Vite apps, use ARG in Dockerfile
+  - Browser-accessed services need localhost URLs (not container names)
+  - Multi-stage with nginx:alpine is lightweight for serving static SPA
+  - SPA routing requires try_files $uri /index.html for client-side routing
+---
