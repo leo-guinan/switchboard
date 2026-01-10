@@ -319,3 +319,17 @@ Thread: https://ampcode.com/threads/T-019ba986-c37b-724f-b483-6e68925987c7
   - Use subsections (###) for individual directory documentation within the Directory Layout section
   - Markdown documentation changes don't affect typecheck
 ---
+
+## 2026-01-10 - US-003 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba987-9e55-774a-a97a-82a0a8c56659
+- Documented File Naming section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added file naming conventions)
+- Documented event files path: events/{feed_id}/{YYYY-MM-DD}/{event_id}.json
+- Documented policy file: policy/policy.json
+- Documented manifest file: .crp/manifest.json
+- Added snapshot naming placeholder for future specification
+- **Learnings for future iterations:**
+  - Markdown documentation changes don't require code changes
+  - Typecheck passes trivially for documentation-only stories
+---
