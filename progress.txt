@@ -183,3 +183,20 @@ Thread: https://ampcode.com/threads/T-019ba8bf-0962-7694-be62-60cd2414121c
   - Use SELECT with specific columns rather than SELECT * for explicit response shape
   - Check result.rows.length === 0 for 404 detection
 ---
+
+## 2026-01-10 - US-003 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c0-0e19-710c-a7f3-e6a10c173821
+- Implemented POST /feeds/:id/events endpoint with Zod validation
+- Files modified:
+  - packages/relay-api/src/index.ts (added POST /feeds/:id/events route)
+  - packages/relay-api/package.json (added @switchboard/shared and zod dependencies)
+  - infra/migrations/002_create_events.sql (added source_adapter_id column)
+- Validates events against EventSchema from @switchboard/shared
+- Returns 404 if feed not found, 400 if validation fails, 201 with stored event on success
+- Added check that feed_id in body matches URL parameter
+- **Learnings for future iterations:**
+  - Use EventSchema.safeParse() for validation with detailed error reporting
+  - When inserting events, map event.source fields to source_* columns in DB
+  - The events table stores source info in separate columns (source_platform, source_adapter_id, source_msg_id)
+  - Response must reconstruct the nested source object from flat DB columns
+---
