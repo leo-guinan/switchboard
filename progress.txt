@@ -531,3 +531,19 @@ Thread: https://ampcode.com/threads/T-019ba999-8c5b-74d6-8308-4abe6b4c146c
   - Clear timeout before committing to prevent duplicate commits
   - flush() method useful for graceful shutdown scenarios
 ---
+
+## 2026-01-10 - US-008 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba99a-abc3-778c-9847-a8a941312926
+- Wired up main entry point in src/index.ts
+- Files modified:
+  - packages/mirror-worker/src/index.ts (implemented main function)
+- Reads config via getConfig()
+- Calls initRepo() to ensure repo is initialized
+- Creates Committer instance with config batch settings
+- Connects to SSE for each feed in FEED_IDS
+- On event received, calls writeEvent() then committer.addEvent()
+- Logs startup message with relay URL and feed count
+- **Learnings for future iterations:**
+  - Use .js extension in ESM imports even for TypeScript files
+  - Cast FeedEvent to Event type since they share same structure
+---
