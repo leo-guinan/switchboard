@@ -673,3 +673,17 @@ Thread: https://ampcode.com/threads/T-019ba9be-ea6e-75fb-99ba-70e3aa55cd36
   - Use randomUUID() from crypto module for uuid generation
   - 60 second threshold matches the heartbeat update interval
 ---
+
+## 2026-01-10 - US-008 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9c0-0065-7143-8439-1436929ea0eb
+- Implemented heartbeat timer for lock file in mirror-worker
+- Files modified:
+  - packages/mirror-worker/src/index.ts (added acquireLock call, heartbeat interval, clearInterval in shutdown)
+- acquireLock() called after initRepo() to create/acquire lock file
+- setInterval runs updateHeartbeat() every 30 seconds
+- clearInterval() called in shutdown() function to stop heartbeat on graceful shutdown
+- Lock file changes are automatically staged by existing `git add -A` in Committer.commit()
+- **Learnings for future iterations:**
+  - Use setInterval for periodic tasks, clearInterval to stop them
+  - Define interval handlers as arrow functions to capture closure variables
+---
