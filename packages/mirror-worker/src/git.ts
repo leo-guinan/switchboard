@@ -119,3 +119,22 @@ export function fetchAndRebase(repoPath: string, branch: string): boolean {
     return false;
   }
 }
+
+/**
+ * Push local commits to remote origin.
+ * Returns true on success, false on failure.
+ * Logs success/error but does not throw.
+ */
+export function pushToRemote(repoPath: string, branch: string): boolean {
+  try {
+    execSync(`git push origin ${branch}`, {
+      cwd: repoPath,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    console.log("Pushed to GitHub");
+    return true;
+  } catch (err) {
+    console.error(`Failed to push to origin/${branch}:`, err);
+    return false;
+  }
+}
