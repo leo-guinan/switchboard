@@ -47,5 +47,17 @@ services:
       migrations:
         condition: service_completed_successfully
 
+  viewer-web:
+    build:
+      context: ..
+      dockerfile: packages/viewer-web/Dockerfile
+      args:
+        VITE_RELAY_URL: http://localhost:3000
+        VITE_MIRROR_URL: http://localhost:3001
+    ports:
+      - "5173:5173"
+    depends_on:
+      - relay-api
+
 volumes:
   pgdata:
