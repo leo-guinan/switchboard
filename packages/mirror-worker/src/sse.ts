@@ -18,17 +18,24 @@ export interface FeedEvent {
 const INITIAL_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 30000;
 
+export interface SSEConnection {
+  close(): void;
+}
+
 export function connectToFeed(
   relayUrl: string,
   feedId: string,
   onEvent: (event: FeedEvent) => void
-): EventSource {
+): SSEConnection {
   const url = `${relayUrl}/feeds/${feedId}/stream`;
   let backoffMs = INITIAL_BACKOFF_MS;
-  let es: EventSource;
+  let es: EventSource | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  let closed = false;
 
-  function connect(): EventSource {
+  function connect(): void {
+    if (closed) return;
+
     es = new EventSource(url);
 
     es.onopen = () => {
@@ -46,8 +53,9 @@ export function connectToFeed(
     };
 
     es.onerror = () => {
+      if (closed) return;
       console.log(`[SSE] Connection error on feed ${feedId}, reconnecting in ${backoffMs}ms...`);
-      es.close();
+      es?.close();
 
       reconnectTimeout = setTimeout(() => {
         reconnectTimeout = null;
@@ -56,9 +64,21 @@ export function connectToFeed(
 
       backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF_MS);
     };
-
-    return es;
   }
 
-  return connect();
+  connect();
+
+  return {
+    close(): void {
+      closed = true;
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
+      if (es) {
+        es.close();
+        es = null;
+      }
+    },
+  };
 }

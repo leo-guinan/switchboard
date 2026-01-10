@@ -1,7 +1,7 @@
 import { getConfig } from "./config.js";
 import { initRepo, writeEvent } from "./repo.js";
 import { Committer } from "./committer.js";
-import { connectToFeed } from "./sse.js";
+import { connectToFeed, SSEConnection } from "./sse.js";
 import type { Event } from "@switchboard/shared";
 
 async function main(): Promise<void> {
@@ -19,12 +19,31 @@ async function main(): Promise<void> {
     config.commitBatchTimeoutMs
   );
 
+  const connections: SSEConnection[] = [];
+
   for (const feedId of config.feedIds) {
-    connectToFeed(config.relayUrl, feedId, async (event) => {
+    const connection = connectToFeed(config.relayUrl, feedId, async (event) => {
       await writeEvent(config.contextRepoPath, event as Event);
       committer.addEvent(event as Event);
     });
+    connections.push(connection);
   }
+
+  function shutdown(): void {
+    console.log("[Mirror] Shutdown signal received, cleaning up...");
+
+    for (const connection of connections) {
+      connection.close();
+    }
+
+    committer.flush();
+
+    console.log("[Mirror] Shutdown complete");
+    process.exit(0);
+  }
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
 
 main().catch((err) => {
