@@ -749,3 +749,17 @@ Thread: https://ampcode.com/threads/T-019ba9cd-dc73-75bf-a623-ff611282a4dd
   - Use actions/checkout@v4 with fetch-depth: 0 for git diff operations
   - Workflow name matches job purpose: "Append-Only Guard"
 ---
+
+## 2026-01-10 - US-003 (Milestone H5)
+Thread: https://ampcode.com/threads/T-019ba9cf-eb6c-72fe-881e-d8854092492c
+- Documented CI guard in CRP spec (docs/crp/crp-v0.1.md)
+- Files modified:
+  - docs/crp/crp-v0.1.md (added CI Guard section)
+- Added "Canonical Rule" subsection with bold statement: "Files under events/ are immutable"
+- Added "Why Events Are Immutable" subsection explaining auditability, replayability, append-only context
+- Added "Enabling the CI Guard" with step-by-step instructions to copy workflow and script
+- Added "Automated Setup" section mentioning --ci flag for crp_init
+- **Learnings for future iterations:**
+  - Documentation changes don't require code changes, just markdown updates
+  - Cross-reference the workflow file and script paths for clarity
+---
