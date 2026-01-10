@@ -257,3 +257,19 @@ Thread: https://ampcode.com/threads/T-019ba8c5-c119-7039-9baf-98e60d16d536
   - SSE messages use `data: ` prefix followed by JSON and double newline
   - Subscribe callback must be stored as variable for proper unsubscribe on disconnect
 ---
+
+## 2026-01-10 - US-008 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c7-898b-7403-a32a-81995c468ec9
+- Implemented GET /feeds/:id/events endpoint with cursor-based pagination
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id/events route)
+- Returns 404 if feed does not exist
+- Supports limit query param (default 50, max 100)
+- Supports after_ts query param for cursor-based pagination (returns events where ts > after_ts)
+- Events ordered ascending by (ts, id)
+- Response returns array of event objects with reconstructed source nested object
+- **Learnings for future iterations:**
+  - Use ORDER BY ts ASC, id ASC for consistent cursor-based pagination
+  - Use Math.min(parsed, 100) to cap the limit at maximum value
+  - Reuse the same event-to-response mapping pattern from POST /events endpoint
+---
