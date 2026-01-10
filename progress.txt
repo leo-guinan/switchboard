@@ -146,3 +146,15 @@ Thread: https://ampcode.com/threads/T-019ba8b5-09cd-774e-a314-c10382803499
   - postgres:16-alpine includes psql client for running migrations
   - Use $$ in docker-compose command to escape $ for shell variables
 ---
+
+## 2026-01-10 - US-011
+Thread: https://ampcode.com/threads/T-019ba8b7-7f9d-7768-9cb0-814d75ba46ef
+- Created README.md with boot instructions
+- Files created:
+  - README.md (explains Switchboard, prerequisites, quick start, architecture, development)
+- Includes step-by-step boot: cp .env.example, docker compose up, curl health check
+- Documents system architecture with directory structure
+- **Learnings for future iterations:**
+  - Check docker-compose.yml for exposed ports when documenting health checks
+  - relay-api runs on port 3000 by default
+---
