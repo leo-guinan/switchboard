@@ -2,17 +2,24 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { execSync } from "child_process";
 
 const args = process.argv.slice(2);
 
-if (args.length === 0) {
-  console.log("Usage: npx ts-node scripts/crp_init.ts <path>");
+const gitFlag = args.includes("--git");
+const positionalArgs = args.filter((arg) => arg !== "--git");
+
+if (positionalArgs.length === 0) {
+  console.log("Usage: npx ts-node scripts/crp_init.ts <path> [--git]");
   console.log("");
   console.log("Creates a new Context Repo following CRP v0.1 at the specified path.");
+  console.log("");
+  console.log("Options:");
+  console.log("  --git    Initialize git repository and create initial commit");
   process.exit(1);
 }
 
-const targetDir = args[0];
+const targetDir = positionalArgs[0];
 
 console.log(`Initializing context repo at: ${targetDir}`);
 
@@ -67,5 +74,16 @@ const manifestContent = {
 const manifestPath = path.join(targetDir, ".crp", "manifest.json");
 fs.writeFileSync(manifestPath, JSON.stringify(manifestContent, null, 2) + "\n");
 console.log("  Created .crp/manifest.json");
+
+if (gitFlag) {
+  const absoluteTargetDir = path.resolve(targetDir);
+  execSync("git init", { cwd: absoluteTargetDir, stdio: "inherit" });
+  execSync("git add -A", { cwd: absoluteTargetDir, stdio: "inherit" });
+  execSync('git commit -m "Initialize context repo"', {
+    cwd: absoluteTargetDir,
+    stdio: "inherit",
+  });
+  console.log("  Initialized git repository with initial commit");
+}
 
 console.log("Done.");
