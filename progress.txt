@@ -433,3 +433,15 @@ Thread: https://ampcode.com/threads/T-019ba98f-6926-7267-87b7-7f25bb088644
   - Use { cwd: path, stdio: "inherit" } to run commands in a specific directory and show output
   - Filter positional args from flags with .filter() to support flags in any position
 ---
+
+## 2026-01-10 - US-001 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba993-1847-7245-9803-f36353fe4d57
+- Created mirror-worker package scaffold
+- Files created:
+  - packages/mirror-worker/package.json (with eventsource and typescript dependencies)
+  - packages/mirror-worker/tsconfig.json (extends root config)
+  - packages/mirror-worker/src/index.ts (entry point placeholder)
+- **Learnings for future iterations:**
+  - eventsource v2.x provides ESM compatible SSE client for Node.js
+  - @types/eventsource provides TypeScript type definitions
+---
