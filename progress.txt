@@ -1126,3 +1126,26 @@ Thread: https://ampcode.com/threads/T-019baa2c-b49c-723a-b1f4-2687a37c6cc2
   - Relative URLs simplify deployment (no need to configure env vars per environment)
   - nginx proxy handles CORS issues automatically
 ---
+
+## 2026-01-10 - US-015 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa2e-5907-72e0-811b-00e0cf7ed189
+- Added mirror-worker service to docker-compose
+- Files created:
+  - packages/mirror-worker/Dockerfile (multi-stage build with git support)
+- Files modified:
+  - infra/docker-compose.yml (added mirror-worker service with volume)
+- Dockerfile features:
+  - Uses node:22-alpine for build stage
+  - Builds shared first, then mirror-worker
+  - Installs git in production image for git operations
+  - Creates /data/context-repo directory
+  - Exposes port 3001
+- Docker-compose features:
+  - mirror-worker service depends on relay-api
+  - Configures RELAY_URL, FEED_IDS, CONTEXT_REPO_PATH, PORT=3001
+  - Uses mirror-repo volume for /data/context-repo
+  - viewer-web now depends on mirror-worker
+- **Learnings for future iterations:**
+  - Mirror worker needs git installed for git operations
+  - Volume mapping ensures context repo persists across restarts
+---
