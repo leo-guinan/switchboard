@@ -49,3 +49,38 @@ export function configureRemote(repoPath: string, repoUrl: string, pat: string):
     console.log("Git remote origin already configured");
   }
 }
+
+/**
+ * Fetch from origin and rebase local commits on top.
+ * Returns true if successful, false if rebase fails (and aborts rebase).
+ */
+export function fetchAndRebase(repoPath: string, branch: string): boolean {
+  try {
+    execSync(`git fetch origin ${branch}`, {
+      cwd: repoPath,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  } catch (err) {
+    console.error(`Failed to fetch origin/${branch}:`, err);
+    return false;
+  }
+
+  try {
+    execSync(`git rebase origin/${branch}`, {
+      cwd: repoPath,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    return true;
+  } catch (err) {
+    console.error(`Rebase failed, aborting:`, err);
+    try {
+      execSync("git rebase --abort", {
+        cwd: repoPath,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } catch {
+      // Ignore abort errors
+    }
+    return false;
+  }
+}
