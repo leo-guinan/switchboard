@@ -1,0 +1,192 @@
+{
+  "project": "Switchboard",
+  "branchName": "ralph/milestone-h0",
+  "description": "Milestone H0 — Monorepo, Infra, Shared Canonical Schema for the Switchboard / Coordination Feed system",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Create base monorepo directory structure",
+      "description": "As a developer, I need the base directory structure created so that all packages have a predictable location.",
+      "acceptanceCriteria": [
+        "packages/ directory exists",
+        "packages/relay-api/ exists with package.json stub",
+        "packages/mirror-worker/ exists as empty scaffold with README placeholder",
+        "packages/viewer-web/ exists as empty scaffold with README placeholder",
+        "packages/adapters/ exists as empty directory with .gitkeep",
+        "packages/shared/ exists",
+        "packages/shared/schema/ exists",
+        "packages/shared/types/ exists",
+        "packages/shared/utils/ exists",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Create infra and docs directories",
+      "description": "As a developer, I need the infrastructure and documentation directories set up.",
+      "acceptanceCriteria": [
+        "infra/ directory exists",
+        "infra/migrations/ exists with .gitkeep",
+        "docs/ directory exists",
+        "docs/prd/ exists with milestone-h0.md placeholder",
+        "docs/crp/ exists with crp-v0.1.md placeholder",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Create shared package with Zod event schema",
+      "description": "As a developer, I need a canonical event schema as single source of truth for all services.",
+      "acceptanceCriteria": [
+        "packages/shared/package.json exists with zod dependency",
+        "packages/shared/schema/event.ts defines EventSchema using Zod",
+        "Schema includes event_id (uuid string), feed_id (uuid string), type (string), author_identity_id (string)",
+        "Schema includes source object with platform (string), adapter_id (string), source_msg_id (string | null)",
+        "Schema includes ts (ISO-8601 string), payload (object with passthrough for unknown fields), refs (optional object with passthrough)",
+        "Schema exports inferred TypeScript type",
+        "packages/shared/index.ts exports schema and types",
+        "Sample event validates successfully against schema",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Create database migration for feeds table",
+      "description": "As a developer, I need the feeds table created via migration.",
+      "acceptanceCriteria": [
+        "infra/migrations/001_create_feeds.sql exists",
+        "Creates feeds table with id (uuid, primary key, default gen_random_uuid())",
+        "Creates feeds table with name (text, not null)",
+        "Creates feeds table with policy_json (jsonb, nullable)",
+        "Creates feeds table with created_at (timestamp, default now())",
+        "Migration is idempotent (uses CREATE TABLE IF NOT EXISTS or similar)",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Create database migration for events table",
+      "description": "As a developer, I need the events table created via migration with proper indexes.",
+      "acceptanceCriteria": [
+        "infra/migrations/002_create_events.sql exists",
+        "Creates events table with id (uuid, primary key)",
+        "Creates events table with feed_id (uuid, foreign key to feeds.id)",
+        "Creates events table with type (text), author_identity_id (text), source_platform (text), source_msg_id (text, nullable)",
+        "Creates events table with ts (timestamp), payload_json (jsonb), refs_json (jsonb, nullable)",
+        "Creates index on (feed_id, ts)",
+        "Creates unique index on (source_platform, source_msg_id) WHERE source_msg_id IS NOT NULL",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Create relay-api package with Express scaffold",
+      "description": "As a developer, I need the relay-api service scaffolded with basic structure.",
+      "acceptanceCriteria": [
+        "packages/relay-api/package.json exists with express, pg, and typescript dependencies",
+        "packages/relay-api/tsconfig.json exists",
+        "packages/relay-api/src/index.ts exists as entry point",
+        "packages/relay-api/src/db.ts exists with Postgres connection logic",
+        "Configurable via DATABASE_URL environment variable",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Add health endpoint to relay-api",
+      "description": "As a developer, I need a health endpoint that verifies database connectivity.",
+      "acceptanceCriteria": [
+        "GET /health endpoint exists in relay-api",
+        "Returns 200 OK with JSON body when DB is connected",
+        "Logs startup message to stdout",
+        "Fails loudly with clear error message if DB is unreachable",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Create docker-compose.yml for local development",
+      "description": "As a developer, I need docker-compose to start Postgres and relay-api.",
+      "acceptanceCriteria": [
+        "infra/docker-compose.yml exists",
+        "Defines postgres service with volume for data persistence",
+        "Defines relay-api service that depends on postgres",
+        "Uses environment variables from .env file (no hardcoded secrets)",
+        "Postgres is accessible to relay-api via internal network",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Create Dockerfile for relay-api",
+      "description": "As a developer, I need a Dockerfile to containerize relay-api.",
+      "acceptanceCriteria": [
+        "packages/relay-api/Dockerfile exists",
+        "Uses Node.js base image",
+        "Installs dependencies and builds TypeScript",
+        "Runs the compiled application",
+        "Exposes correct port",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Create .env.example and migration runner",
+      "description": "As a developer, I need documented environment variables and a way to run migrations.",
+      "acceptanceCriteria": [
+        ".env.example exists at repo root",
+        "Documents DATABASE_URL variable",
+        "Documents POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB for docker-compose",
+        "infra/run-migrations.sh script exists to run SQL migrations in order",
+        "docker-compose runs migrations on startup or via explicit command",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Create README with boot instructions",
+      "description": "As a developer, I need documentation to understand and boot the system.",
+      "acceptanceCriteria": [
+        "README.md exists at repo root",
+        "Explains what Switchboard is (coordination feed system)",
+        "Lists prerequisites (Docker, Docker Compose)",
+        "Provides step-by-step boot instructions (cp .env.example .env, docker compose up)",
+        "Explains how to verify system is working (curl localhost:PORT/health)",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": true,
+      "notes": ""
+    }
+  ]
+}

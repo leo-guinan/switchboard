@@ -1,0 +1,160 @@
+## Codebase Patterns
+- Use `npx tsc --noEmit` for typecheck
+- Monorepo uses npm workspaces
+- At least one .ts file must exist for typecheck to pass
+- Use `condition: service_completed_successfully` for one-shot migration containers in docker-compose
+
+---
+
+## 2026-01-10 - US-001
+Thread: https://ampcode.com/threads/T-019ba8aa-f566-7095-942f-981eb1127ebd
+- Created base monorepo directory structure
+- Files created:
+  - packages/relay-api/package.json (stub)
+  - packages/mirror-worker/README.md (placeholder)
+  - packages/viewer-web/README.md (placeholder)
+  - packages/adapters/.gitkeep
+  - packages/shared/schema/.gitkeep
+  - packages/shared/types/.gitkeep
+  - packages/shared/utils/.gitkeep
+  - packages/shared/index.ts (entry point)
+  - package.json (root with workspaces)
+  - tsconfig.json (root config)
+  - .gitignore
+- **Learnings for future iterations:**
+  - TypeScript requires at least one .ts file to pass typecheck
+  - Added packages/shared/index.ts as placeholder
+---
+
+## 2026-01-10 - US-002
+Thread: https://ampcode.com/threads/T-019ba8ac-72b8-7469-a173-db217fe30342
+- Created infra and docs directories
+- Files created:
+  - infra/migrations/.gitkeep
+  - docs/prd/milestone-h0.md (placeholder)
+  - docs/crp/crp-v0.1.md (placeholder)
+- **Learnings for future iterations:**
+  - Simple directory scaffolding doesn't require additional patterns
+---
+
+## 2026-01-10 - US-003
+Thread: https://ampcode.com/threads/T-019ba8ad-5ee7-7189-8d09-c09ea5b9e84b
+- Created shared package with Zod event schema
+- Files created/modified:
+  - packages/shared/package.json (with zod dependency)
+  - packages/shared/schema/event.ts (EventSchema, SourceSchema, and inferred types)
+  - packages/shared/index.ts (exports schema and types)
+- Removed packages/shared/schema/.gitkeep (no longer needed)
+- **Learnings for future iterations:**
+  - Use z.string().uuid() for UUID validation
+  - Use z.string().datetime() for ISO-8601 timestamp validation
+  - Use z.object({}).passthrough() for flexible objects that allow additional fields
+  - Sample event validation can be tested with node directly using require('zod')
+---
+
+## 2026-01-10 - US-004
+Thread: https://ampcode.com/threads/T-019ba8af-0150-751a-be29-a0b00ed57221
+- Created database migration for feeds table
+- Files created:
+  - infra/migrations/001_create_feeds.sql
+- **Learnings for future iterations:**
+  - Use CREATE TABLE IF NOT EXISTS for idempotent migrations
+  - gen_random_uuid() is the Postgres function for default UUID generation
+  - JSONB is the preferred type for JSON columns in Postgres
+---
+
+## 2026-01-10 - US-005
+Thread: https://ampcode.com/threads/T-019ba8b0-00d2-715a-8155-ed55c239abe0
+- Created database migration for events table
+- Files created:
+  - infra/migrations/002_create_events.sql
+- **Learnings for future iterations:**
+  - Use CREATE INDEX IF NOT EXISTS for idempotent index creation
+  - Use REFERENCES for foreign key constraints (e.g., feed_id REFERENCES feeds(id))
+  - Partial unique indexes use WHERE clause (e.g., WHERE source_msg_id IS NOT NULL)
+---
+
+## 2026-01-10 - US-006
+Thread: https://ampcode.com/threads/T-019ba8b0-e1b2-757b-ae77-565967379ddb
+- Created relay-api package with Express scaffold
+- Files created/modified:
+  - packages/relay-api/package.json (with express, pg, typescript dependencies)
+  - packages/relay-api/tsconfig.json (extends root config)
+  - packages/relay-api/src/index.ts (Express app entry point)
+  - packages/relay-api/src/db.ts (Postgres Pool with DATABASE_URL configuration)
+- **Learnings for future iterations:**
+  - Use `import pg from "pg"; const { Pool } = pg;` for ESM module compatibility
+  - DATABASE_URL is checked at startup - process exits if not set
+  - relay-api tsconfig extends root and sets rootDir to src
+---
+
+## 2026-01-10 - US-007
+Thread: https://ampcode.com/threads/T-019ba8b2-3320-741e-8846-7240b2ea3116
+- Added GET /health endpoint to relay-api
+- Files modified:
+  - packages/relay-api/src/index.ts (added /health route)
+- Health endpoint returns 200 OK with `{ status: "ok", database: "connected" }` when DB is reachable
+- Returns 503 with `{ status: "error", database: "unreachable", message: "..." }` when DB fails
+- Uses existing `testConnection()` function from db.ts
+- **Learnings for future iterations:**
+  - Express async route handlers work well with await
+  - Use 503 Service Unavailable for health check failures
+  - testConnection() from db.ts already exists and returns boolean for DB status
+---
+
+## 2026-01-10 - US-008
+Thread: https://ampcode.com/threads/T-019ba8b3-56b8-729d-88d5-366d8d9571d6
+- Created docker-compose.yml for local development
+- Files created:
+  - infra/docker-compose.yml
+- Defines postgres service with volume (pgdata) for data persistence
+- Defines relay-api service that depends on postgres (with healthcheck condition)
+- Uses environment variables from .env file (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
+- Postgres accessible via internal network at postgres:5432
+- **Learnings for future iterations:**
+  - Use `condition: service_healthy` for depends_on to wait for postgres readiness
+  - Use postgres:16-alpine as lightweight postgres image
+  - DATABASE_URL format: postgres://USER:PASSWORD@HOST:PORT/DBNAME
+---
+
+## 2026-01-10 - US-009
+Thread: https://ampcode.com/threads/T-019ba8b4-156f-7251-9f47-e156aa44d37d
+- Created Dockerfile for relay-api
+- Files created:
+  - packages/relay-api/Dockerfile
+- Uses multi-stage build: builder stage compiles TypeScript, final stage runs production
+- Uses node:22-alpine as lightweight Node.js base image
+- Exposes port 3000 (matches PORT default in src/index.ts)
+- **Learnings for future iterations:**
+  - Multi-stage builds reduce final image size (dev deps only in builder stage)
+  - Use `npm install --omit=dev` for production dependencies only
+  - Match exposed port with the application's default PORT
+---
+
+## 2026-01-10 - US-010
+Thread: https://ampcode.com/threads/T-019ba8b5-09cd-774e-a314-c10382803499
+- Created .env.example and migration runner
+- Files created:
+  - .env.example (documents DATABASE_URL and POSTGRES_* variables)
+  - infra/run-migrations.sh (bash script to run migrations via psql)
+- Files modified:
+  - infra/docker-compose.yml (added migrations service)
+- Migrations service runs all *.sql files in order before relay-api starts
+- relay-api depends on migrations with `condition: service_completed_successfully`
+- **Learnings for future iterations:**
+  - Use `condition: service_completed_successfully` for one-shot initialization containers
+  - postgres:16-alpine includes psql client for running migrations
+  - Use $$ in docker-compose command to escape $ for shell variables
+---
+
+## 2026-01-10 - US-011
+Thread: https://ampcode.com/threads/T-019ba8b7-7f9d-7768-9cb0-814d75ba46ef
+- Created README.md with boot instructions
+- Files created:
+  - README.md (explains Switchboard, prerequisites, quick start, architecture, development)
+- Includes step-by-step boot: cp .env.example, docker compose up, curl health check
+- Documents system architecture with directory structure
+- **Learnings for future iterations:**
+  - Check docker-compose.yml for exposed ports when documenting health checks
+  - relay-api runs on port 3000 by default
+---
