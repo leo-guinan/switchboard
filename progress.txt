@@ -396,3 +396,15 @@ Thread: https://ampcode.com/threads/T-019ba98c-9cf0-72cd-addc-79ed9927d045
   - Use template literals for multi-line file content in TypeScript
   - Markdown tables work well for documenting directory structures
 ---
+
+## 2026-01-10 - US-009 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98d-9047-77cf-9ec5-50e837fa6a57
+- Added policy/policy.json creation to crp_init script
+- Files modified:
+  - scripts/crp_init.ts (added policyContent object and writeFileSync for policy.json)
+- Policy JSON has members: [] array and permissions: {} object
+- File is valid JSON formatted with 2-space indentation
+- **Learnings for future iterations:**
+  - Use JSON.stringify(obj, null, 2) for pretty-printed JSON output
+  - policy/ directory already exists from earlier directory creation step
+---
