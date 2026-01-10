@@ -3,6 +3,9 @@
 - Monorepo uses npm workspaces
 - At least one .ts file must exist for typecheck to pass
 - Use `condition: service_completed_successfully` for one-shot migration containers in docker-compose
+- Shared package must be built before relay-api can run (`npm run build` in shared)
+- Use vitest for testing in relay-api (`npm run test`)
+- Integration tests run against live server at http://localhost:3000
 
 ---
 
@@ -272,4 +275,25 @@ Thread: https://ampcode.com/threads/T-019ba8c7-898b-7403-a32a-81995c468ec9
   - Use ORDER BY ts ASC, id ASC for consistent cursor-based pagination
   - Use Math.min(parsed, 100) to cap the limit at maximum value
   - Reuse the same event-to-response mapping pattern from POST /events endpoint
+---
+
+## 2026-01-10 - US-009 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c8-97cb-756d-b137-2179d1b42901
+- Created integration test for full ingest-to-SSE flow
+- Files created:
+  - packages/relay-api/src/__tests__/integration.test.ts
+  - packages/relay-api/vitest.config.ts
+  - packages/shared/tsconfig.json
+- Files modified:
+  - packages/relay-api/package.json (added test scripts, vitest, supertest)
+  - packages/shared/package.json (added build script, ESM exports, TypeScript compilation)
+  - packages/shared/index.ts (fixed ESM import path with .js extension)
+  - infra/docker-compose.yml (exposed postgres port 5432 for local development)
+- Test validates complete flow: create feed → connect SSE → POST event → receive via SSE → verify persistence
+- **Learnings for future iterations:**
+  - Shared package requires TypeScript compilation before relay-api can run
+  - Use `.js` extension in TypeScript imports when using ESM module resolution
+  - Vitest works well for ESM-based TypeScript projects
+  - Integration tests should run against live server (requires docker compose up or local run)
+  - Use http module directly for SSE client in tests (simpler than EventSource for server-side)
 ---
