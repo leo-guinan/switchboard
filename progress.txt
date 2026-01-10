@@ -61,3 +61,14 @@ Thread: https://ampcode.com/threads/T-019ba8af-0150-751a-be29-a0b00ed57221
   - gen_random_uuid() is the Postgres function for default UUID generation
   - JSONB is the preferred type for JSON columns in Postgres
 ---
+
+## 2026-01-10 - US-005
+Thread: https://ampcode.com/threads/T-019ba8b0-00d2-715a-8155-ed55c239abe0
+- Created database migration for events table
+- Files created:
+  - infra/migrations/002_create_events.sql
+- **Learnings for future iterations:**
+  - Use CREATE INDEX IF NOT EXISTS for idempotent index creation
+  - Use REFERENCES for foreign key constraints (e.g., feed_id REFERENCES feeds(id))
+  - Partial unique indexes use WHERE clause (e.g., WHERE source_msg_id IS NOT NULL)
+---
