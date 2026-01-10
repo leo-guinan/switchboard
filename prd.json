@@ -1,148 +1,174 @@
 {
   "project": "Switchboard",
-  "branchName": "ralph/milestone-h1",
-  "description": "Milestone H1 — Relay Ingest + SSE Stream. POST events and watch them appear over SSE in real-time.",
+  "branchName": "ralph/milestone-h2",
+  "description": "Milestone H2 — Context Repo Protocol spec + repo bootstrapper. CRP v0.1 spec and crp_init script.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Create feed endpoint",
-      "description": "As a developer, I want to create feeds via API so that I have isolated contexts for events.",
+      "title": "Create CRP v0.1 spec document scaffold",
+      "description": "As a developer, I need a specification document so that all tools agree on context repo structure.",
       "acceptanceCriteria": [
-        "POST /feeds accepts { name: string, policy_json?: object }",
-        "Returns { id, name, policy_json, created_at } with 201 status",
-        "name is required; returns 400 if missing",
-        "policy_json is optional, stored as-is if provided",
-        "Feed id is a UUID generated server-side",
+        "docs/crp/crp-v0.1.md exists (replace placeholder)",
+        "Document has title: Context Repo Protocol v0.1",
+        "Document has sections: Purpose, Version, Directory Layout, File Naming, Event Format, Policy",
+        "Purpose section explains CRP is the canonical structure for git-based context repos",
+        "Version section states v0.1",
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Get feed endpoint",
-      "description": "As a developer, I want to retrieve a feed by ID so that I can verify it exists.",
+      "title": "Document directory layout in CRP spec",
+      "description": "As a developer, I need the directory structure documented so that I know where files belong.",
       "acceptanceCriteria": [
-        "GET /feeds/:id returns feed object with 200 status",
-        "Returns 404 if feed does not exist",
-        "Response matches create response shape: { id, name, policy_json, created_at }",
+        "Directory Layout section documents events/ directory for event files",
+        "Documents snapshots/ directory for state snapshots",
+        "Documents policy/ directory for access policies",
+        "Documents .crp/ directory for repo metadata",
+        "Each directory has description of its purpose",
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-003",
-      "title": "Ingest event endpoint with validation",
-      "description": "As a developer, I want to POST events to a feed so that they are validated and persisted.",
+      "title": "Document file naming conventions in CRP spec",
+      "description": "As a developer, I need file naming conventions so that events are organized predictably.",
       "acceptanceCriteria": [
-        "POST /feeds/:id/events accepts event matching canonical Zod schema",
-        "Validates required fields: event_id, feed_id, type, author_identity_id, source, ts, payload",
-        "source must have platform, adapter_id, source_msg_id (nullable)",
-        "payload allows any object (passthrough validation)",
-        "refs is optional, allows any object (passthrough)",
-        "Returns 400 with validation errors if schema fails",
-        "Returns 404 if feed does not exist",
-        "Returns 201 with stored event on success",
+        "File Naming section documents event files: events/{feed_id}/{YYYY-MM-DD}/{event_id}.json",
+        "Documents policy file: policy/policy.json",
+        "Documents manifest file: .crp/manifest.json",
+        "Documents snapshot naming convention (can be placeholder for future)",
         "Typecheck passes"
       ],
       "priority": 3,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-004",
-      "title": "Event idempotency",
-      "description": "As a developer, I want idempotent event ingestion so that retries don't create duplicates.",
+      "title": "Document event file format in CRP spec",
+      "description": "As a developer, I need the event file format documented so that files are parseable.",
       "acceptanceCriteria": [
-        "If event_id already exists, return 200 with existing event (no duplicate created)",
-        "If (source_platform, source_msg_id) already exists and source_msg_id is not null, return 200 with existing event",
-        "New events with unique identifiers return 201",
+        "Event Format section documents that event files are JSON",
+        "Lists required fields: event_id, feed_id, type, author_identity_id, source, ts, payload",
+        "Documents source object structure: platform, adapter_id, source_msg_id",
+        "Documents refs as optional",
+        "Includes example event JSON",
         "Typecheck passes"
       ],
       "priority": 4,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-005",
-      "title": "SSE stream endpoint",
-      "description": "As a developer, I want to subscribe to a feed's event stream via SSE.",
+      "title": "Document policy structure in CRP spec",
+      "description": "As a developer, I need policy structure documented so that access control is consistent.",
       "acceptanceCriteria": [
-        "GET /feeds/:id/stream returns SSE stream (Content-Type: text/event-stream)",
-        "Returns 404 if feed does not exist",
-        "Connection stays open until client disconnects",
+        "Policy section documents policy/policy.json structure",
+        "Documents members array field",
+        "Documents permissions object field",
+        "Notes that policy enforcement is future work",
         "Typecheck passes"
       ],
       "priority": 5,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-006",
-      "title": "In-memory pub/sub for SSE broadcast",
-      "description": "As a developer, I need an in-memory pub/sub system to broadcast events to SSE clients.",
+      "title": "Create crp_init script scaffold",
+      "description": "As a developer, I need a Node.js script to bootstrap context repos.",
       "acceptanceCriteria": [
-        "Create EventEmitter-based or similar pub/sub in relay-api",
-        "Clients can subscribe to a feed_id channel",
-        "Clients can unsubscribe on disconnect",
-        "publish(feed_id, event) sends to all subscribers of that feed",
+        "scripts/crp_init.ts exists",
+        "Script accepts target directory as first argument",
+        "Script is executable via npx ts-node scripts/crp_init.ts <path>",
+        "Prints usage if no path argument provided",
         "Typecheck passes"
       ],
       "priority": 6,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-007",
-      "title": "Broadcast ingested events to SSE clients",
-      "description": "As a developer, I want ingested events to be broadcast to connected SSE clients within 1 second.",
+      "title": "crp_init creates directory structure",
+      "description": "As a developer, I want crp_init to create the standard CRP directories.",
       "acceptanceCriteria": [
-        "When event is POSTed, publish to pub/sub for that feed_id",
-        "SSE endpoint subscribes to pub/sub and writes events as SSE messages",
-        "Each SSE message has data: prefix containing JSON event",
-        "Multiple clients on same feed all receive the event",
-        "Events only broadcast to clients of the matching feed_id",
+        "Creates events/ directory in target path",
+        "Creates snapshots/ directory in target path",
+        "Creates policy/ directory in target path",
+        "Creates .crp/ directory in target path",
+        "Creates .gitkeep in empty directories (events/, snapshots/)",
         "Typecheck passes"
       ],
       "priority": 7,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-008",
-      "title": "Get events endpoint with pagination",
-      "description": "As a developer, I want to query persisted events with cursor-based pagination.",
+      "title": "crp_init writes README",
+      "description": "As a developer, I want crp_init to generate a README explaining the repo.",
       "acceptanceCriteria": [
-        "GET /feeds/:id/events returns array of events",
-        "Returns 404 if feed does not exist",
-        "Supports limit query param (default 50, max 100)",
-        "Supports after_ts query param (ISO-8601 timestamp)",
-        "Events ordered ascending by (ts, id)",
-        "Returns events where ts > after_ts",
+        "Creates README.md in target directory",
+        "README explains this is a Context Repo following CRP v0.1",
+        "README documents the directory layout (events/, snapshots/, policy/, .crp/)",
         "Typecheck passes"
       ],
       "priority": 8,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-009",
-      "title": "Integration test for full flow",
-      "description": "As a developer, I want an integration test that validates the complete ingest-to-SSE flow.",
+      "title": "crp_init writes policy skeleton",
+      "description": "As a developer, I want crp_init to generate a placeholder policy file.",
       "acceptanceCriteria": [
-        "Test creates a feed via POST /feeds",
-        "Test connects SSE client to /feeds/:id/stream",
-        "Test POSTs an event to /feeds/:id/events",
-        "Test verifies SSE receives the event within 1 second",
-        "Test verifies GET /feeds/:id/events returns the persisted event",
-        "Test passes",
+        "Creates policy/policy.json in target directory",
+        "Policy JSON has members: [] array",
+        "Policy JSON has permissions: {} object",
+        "File is valid JSON",
         "Typecheck passes"
       ],
       "priority": 9,
-      "passes": true,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "crp_init writes manifest",
+      "description": "As a developer, I want crp_init to generate a manifest file with repo metadata.",
+      "acceptanceCriteria": [
+        "Creates .crp/manifest.json in target directory",
+        "Manifest includes version: \"0.1\"",
+        "Manifest includes created_at with ISO-8601 timestamp",
+        "File is valid JSON",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "crp_init optional git init",
+      "description": "As a developer, I want crp_init to optionally initialize git.",
+      "acceptanceCriteria": [
+        "Accepts --git flag as optional argument",
+        "When --git passed, runs git init in target directory",
+        "When --git passed, creates initial commit with message \"Initialize context repo\"",
+        "Without --git flag, does not touch git",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
       "notes": ""
     }
   ]

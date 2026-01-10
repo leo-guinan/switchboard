@@ -1,0 +1,299 @@
+## Codebase Patterns
+- Use `npx tsc --noEmit` for typecheck
+- Monorepo uses npm workspaces
+- At least one .ts file must exist for typecheck to pass
+- Use `condition: service_completed_successfully` for one-shot migration containers in docker-compose
+- Shared package must be built before relay-api can run (`npm run build` in shared)
+- Use vitest for testing in relay-api (`npm run test`)
+- Integration tests run against live server at http://localhost:3000
+
+---
+
+## 2026-01-10 - US-001
+Thread: https://ampcode.com/threads/T-019ba8aa-f566-7095-942f-981eb1127ebd
+- Created base monorepo directory structure
+- Files created:
+  - packages/relay-api/package.json (stub)
+  - packages/mirror-worker/README.md (placeholder)
+  - packages/viewer-web/README.md (placeholder)
+  - packages/adapters/.gitkeep
+  - packages/shared/schema/.gitkeep
+  - packages/shared/types/.gitkeep
+  - packages/shared/utils/.gitkeep
+  - packages/shared/index.ts (entry point)
+  - package.json (root with workspaces)
+  - tsconfig.json (root config)
+  - .gitignore
+- **Learnings for future iterations:**
+  - TypeScript requires at least one .ts file to pass typecheck
+  - Added packages/shared/index.ts as placeholder
+---
+
+## 2026-01-10 - US-002
+Thread: https://ampcode.com/threads/T-019ba8ac-72b8-7469-a173-db217fe30342
+- Created infra and docs directories
+- Files created:
+  - infra/migrations/.gitkeep
+  - docs/prd/milestone-h0.md (placeholder)
+  - docs/crp/crp-v0.1.md (placeholder)
+- **Learnings for future iterations:**
+  - Simple directory scaffolding doesn't require additional patterns
+---
+
+## 2026-01-10 - US-003
+Thread: https://ampcode.com/threads/T-019ba8ad-5ee7-7189-8d09-c09ea5b9e84b
+- Created shared package with Zod event schema
+- Files created/modified:
+  - packages/shared/package.json (with zod dependency)
+  - packages/shared/schema/event.ts (EventSchema, SourceSchema, and inferred types)
+  - packages/shared/index.ts (exports schema and types)
+- Removed packages/shared/schema/.gitkeep (no longer needed)
+- **Learnings for future iterations:**
+  - Use z.string().uuid() for UUID validation
+  - Use z.string().datetime() for ISO-8601 timestamp validation
+  - Use z.object({}).passthrough() for flexible objects that allow additional fields
+  - Sample event validation can be tested with node directly using require('zod')
+---
+
+## 2026-01-10 - US-004
+Thread: https://ampcode.com/threads/T-019ba8af-0150-751a-be29-a0b00ed57221
+- Created database migration for feeds table
+- Files created:
+  - infra/migrations/001_create_feeds.sql
+- **Learnings for future iterations:**
+  - Use CREATE TABLE IF NOT EXISTS for idempotent migrations
+  - gen_random_uuid() is the Postgres function for default UUID generation
+  - JSONB is the preferred type for JSON columns in Postgres
+---
+
+## 2026-01-10 - US-005
+Thread: https://ampcode.com/threads/T-019ba8b0-00d2-715a-8155-ed55c239abe0
+- Created database migration for events table
+- Files created:
+  - infra/migrations/002_create_events.sql
+- **Learnings for future iterations:**
+  - Use CREATE INDEX IF NOT EXISTS for idempotent index creation
+  - Use REFERENCES for foreign key constraints (e.g., feed_id REFERENCES feeds(id))
+  - Partial unique indexes use WHERE clause (e.g., WHERE source_msg_id IS NOT NULL)
+---
+
+## 2026-01-10 - US-006
+Thread: https://ampcode.com/threads/T-019ba8b0-e1b2-757b-ae77-565967379ddb
+- Created relay-api package with Express scaffold
+- Files created/modified:
+  - packages/relay-api/package.json (with express, pg, typescript dependencies)
+  - packages/relay-api/tsconfig.json (extends root config)
+  - packages/relay-api/src/index.ts (Express app entry point)
+  - packages/relay-api/src/db.ts (Postgres Pool with DATABASE_URL configuration)
+- **Learnings for future iterations:**
+  - Use `import pg from "pg"; const { Pool } = pg;` for ESM module compatibility
+  - DATABASE_URL is checked at startup - process exits if not set
+  - relay-api tsconfig extends root and sets rootDir to src
+---
+
+## 2026-01-10 - US-007
+Thread: https://ampcode.com/threads/T-019ba8b2-3320-741e-8846-7240b2ea3116
+- Added GET /health endpoint to relay-api
+- Files modified:
+  - packages/relay-api/src/index.ts (added /health route)
+- Health endpoint returns 200 OK with `{ status: "ok", database: "connected" }` when DB is reachable
+- Returns 503 with `{ status: "error", database: "unreachable", message: "..." }` when DB fails
+- Uses existing `testConnection()` function from db.ts
+- **Learnings for future iterations:**
+  - Express async route handlers work well with await
+  - Use 503 Service Unavailable for health check failures
+  - testConnection() from db.ts already exists and returns boolean for DB status
+---
+
+## 2026-01-10 - US-008
+Thread: https://ampcode.com/threads/T-019ba8b3-56b8-729d-88d5-366d8d9571d6
+- Created docker-compose.yml for local development
+- Files created:
+  - infra/docker-compose.yml
+- Defines postgres service with volume (pgdata) for data persistence
+- Defines relay-api service that depends on postgres (with healthcheck condition)
+- Uses environment variables from .env file (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
+- Postgres accessible via internal network at postgres:5432
+- **Learnings for future iterations:**
+  - Use `condition: service_healthy` for depends_on to wait for postgres readiness
+  - Use postgres:16-alpine as lightweight postgres image
+  - DATABASE_URL format: postgres://USER:PASSWORD@HOST:PORT/DBNAME
+---
+
+## 2026-01-10 - US-009
+Thread: https://ampcode.com/threads/T-019ba8b4-156f-7251-9f47-e156aa44d37d
+- Created Dockerfile for relay-api
+- Files created:
+  - packages/relay-api/Dockerfile
+- Uses multi-stage build: builder stage compiles TypeScript, final stage runs production
+- Uses node:22-alpine as lightweight Node.js base image
+- Exposes port 3000 (matches PORT default in src/index.ts)
+- **Learnings for future iterations:**
+  - Multi-stage builds reduce final image size (dev deps only in builder stage)
+  - Use `npm install --omit=dev` for production dependencies only
+  - Match exposed port with the application's default PORT
+---
+
+## 2026-01-10 - US-010
+Thread: https://ampcode.com/threads/T-019ba8b5-09cd-774e-a314-c10382803499
+- Created .env.example and migration runner
+- Files created:
+  - .env.example (documents DATABASE_URL and POSTGRES_* variables)
+  - infra/run-migrations.sh (bash script to run migrations via psql)
+- Files modified:
+  - infra/docker-compose.yml (added migrations service)
+- Migrations service runs all *.sql files in order before relay-api starts
+- relay-api depends on migrations with `condition: service_completed_successfully`
+- **Learnings for future iterations:**
+  - Use `condition: service_completed_successfully` for one-shot initialization containers
+  - postgres:16-alpine includes psql client for running migrations
+  - Use $$ in docker-compose command to escape $ for shell variables
+---
+
+## 2026-01-10 - US-011
+Thread: https://ampcode.com/threads/T-019ba8b7-7f9d-7768-9cb0-814d75ba46ef
+- Created README.md with boot instructions
+- Files created:
+  - README.md (explains Switchboard, prerequisites, quick start, architecture, development)
+- Includes step-by-step boot: cp .env.example, docker compose up, curl health check
+- Documents system architecture with directory structure
+- **Learnings for future iterations:**
+  - Check docker-compose.yml for exposed ports when documenting health checks
+  - relay-api runs on port 3000 by default
+---
+
+## 2026-01-10 - US-001 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8bd-ae91-760d-85c0-b7438de22389
+- Implemented POST /feeds endpoint for creating feeds
+- Files modified:
+  - packages/relay-api/src/index.ts (added POST /feeds route)
+- Returns 201 with { id, name, policy_json, created_at } on success
+- Returns 400 if name is missing or not a string
+- policy_json is optional, stored as-is if provided
+- **Learnings for future iterations:**
+  - Use RETURNING clause in INSERT to get created row data including generated id and created_at
+  - Use ?? null for optional JSONB parameters to avoid undefined
+---
+
+## 2026-01-10 - US-002 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8bf-0962-7694-be62-60cd2414121c
+- Implemented GET /feeds/:id endpoint for retrieving feeds
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id route)
+- Returns 200 with { id, name, policy_json, created_at } if feed exists
+- Returns 404 with { error: "Feed not found" } if feed does not exist
+- **Learnings for future iterations:**
+  - Use SELECT with specific columns rather than SELECT * for explicit response shape
+  - Check result.rows.length === 0 for 404 detection
+---
+
+## 2026-01-10 - US-003 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c0-0e19-710c-a7f3-e6a10c173821
+- Implemented POST /feeds/:id/events endpoint with Zod validation
+- Files modified:
+  - packages/relay-api/src/index.ts (added POST /feeds/:id/events route)
+  - packages/relay-api/package.json (added @switchboard/shared and zod dependencies)
+  - infra/migrations/002_create_events.sql (added source_adapter_id column)
+- Validates events against EventSchema from @switchboard/shared
+- Returns 404 if feed not found, 400 if validation fails, 201 with stored event on success
+- Added check that feed_id in body matches URL parameter
+- **Learnings for future iterations:**
+  - Use EventSchema.safeParse() for validation with detailed error reporting
+  - When inserting events, map event.source fields to source_* columns in DB
+  - The events table stores source info in separate columns (source_platform, source_adapter_id, source_msg_id)
+  - Response must reconstruct the nested source object from flat DB columns
+---
+
+## 2026-01-10 - US-004 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c2-5c69-74d9-9cd6-9ddd37fbaad3
+- Implemented event idempotency for POST /feeds/:id/events endpoint
+- Files modified:
+  - packages/relay-api/src/index.ts (added duplicate detection before insert)
+- Checks for existing event by event_id first, returns 200 if found
+- Checks for existing event by (source_platform, source_msg_id) when source_msg_id is not null, returns 200 if found
+- Only inserts and returns 201 if no duplicates found
+- **Learnings for future iterations:**
+  - Check by primary key (event_id) first for efficiency
+  - Only check source-based dedup when source_msg_id is not null (matches partial unique index)
+  - Return 200 for existing events, 201 for newly created
+---
+
+## 2026-01-10 - US-005 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c3-af40-740e-b11d-615bd184b4bf
+- Implemented GET /feeds/:id/stream SSE endpoint
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id/stream route)
+- Returns 404 if feed does not exist
+- Sets SSE headers: Content-Type: text/event-stream, Cache-Control: no-cache, Connection: keep-alive
+- Uses flushHeaders() to send headers immediately
+- Listens for req.on("close") to detect client disconnect
+- **Learnings for future iterations:**
+  - Use res.flushHeaders() after setting SSE headers to send them immediately
+  - SSE requires: text/event-stream content-type, no-cache, keep-alive headers
+  - Use req.on("close") to detect when client disconnects
+---
+
+## 2026-01-10 - US-006 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c4-c26e-7727-9744-e30c13e38514
+- Created in-memory pub/sub module for SSE broadcast
+- Files created:
+  - packages/relay-api/src/pubsub.ts
+- Exports: subscribe(feedId, callback), unsubscribe(feedId, callback), publish(feedId, event)
+- Uses Node.js EventEmitter internally with feedId as event channel
+- Tracks subscribers in a Map<string, Set<Subscriber>> for clean unsubscribe
+- **Learnings for future iterations:**
+  - EventEmitter is built-in to Node.js, no external dependency needed
+  - Use emitter.on() to subscribe and emitter.off() to unsubscribe
+  - Store callbacks in a Set to allow proper cleanup on disconnect
+---
+
+## 2026-01-10 - US-007 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c5-c119-7039-9baf-98e60d16d536
+- Implemented SSE broadcast for ingested events
+- Files modified:
+  - packages/relay-api/src/index.ts (imported pubsub, added subscribe/unsubscribe to SSE endpoint, publish on event insert)
+- SSE endpoint now subscribes to pub/sub for the feed_id and writes events as `data: {...}\n\n`
+- POST /events publishes to pub/sub after successful insert (201 only, not duplicates)
+- Client disconnect triggers unsubscribe to clean up listeners
+- **Learnings for future iterations:**
+  - Only publish to pub/sub for new events (201), not duplicates (200)
+  - SSE messages use `data: ` prefix followed by JSON and double newline
+  - Subscribe callback must be stored as variable for proper unsubscribe on disconnect
+---
+
+## 2026-01-10 - US-008 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c7-898b-7403-a32a-81995c468ec9
+- Implemented GET /feeds/:id/events endpoint with cursor-based pagination
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id/events route)
+- Returns 404 if feed does not exist
+- Supports limit query param (default 50, max 100)
+- Supports after_ts query param for cursor-based pagination (returns events where ts > after_ts)
+- Events ordered ascending by (ts, id)
+- Response returns array of event objects with reconstructed source nested object
+- **Learnings for future iterations:**
+  - Use ORDER BY ts ASC, id ASC for consistent cursor-based pagination
+  - Use Math.min(parsed, 100) to cap the limit at maximum value
+  - Reuse the same event-to-response mapping pattern from POST /events endpoint
+---
+
+## 2026-01-10 - US-009 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c8-97cb-756d-b137-2179d1b42901
+- Created integration test for full ingest-to-SSE flow
+- Files created:
+  - packages/relay-api/src/__tests__/integration.test.ts
+  - packages/relay-api/vitest.config.ts
+  - packages/shared/tsconfig.json
+- Files modified:
+  - packages/relay-api/package.json (added test scripts, vitest, supertest)
+  - packages/shared/package.json (added build script, ESM exports, TypeScript compilation)
+  - packages/shared/index.ts (fixed ESM import path with .js extension)
+  - infra/docker-compose.yml (exposed postgres port 5432 for local development)
+- Test validates complete flow: create feed → connect SSE → POST event → receive via SSE → verify persistence
+- **Learnings for future iterations:**
+  - Shared package requires TypeScript compilation before relay-api can run
+  - Use `.js` extension in TypeScript imports when using ESM module resolution
+  - Vitest works well for ESM-based TypeScript projects
+  - Integration tests should run against live server (requires docker compose up or local run)
+  - Use http module directly for SSE client in tests (simpler than EventSource for server-side)
+---
