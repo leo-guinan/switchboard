@@ -1,0 +1,141 @@
+{
+  "project": "Switchboard",
+  "branchName": "ralph/milestone-h5",
+  "description": "Milestone H5 — CI Append-Only Guard. PR that edits an event file fails CI.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Create append-only check script",
+      "description": "As a developer, I need a script that detects modifications to event files.",
+      "acceptanceCriteria": [
+        "scripts/check-append-only.sh exists",
+        "Script takes base ref as argument (e.g., origin/main)",
+        "Uses git diff --name-status to list changed files",
+        "Checks for M (modified) or D (deleted) status on files under events/",
+        "Exits 0 if all event changes are A (added) or no event changes",
+        "Exits 1 with clear error message if any M or D found in events/",
+        "Lists offending files in error output",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Create GitHub Actions workflow template",
+      "description": "As a developer, I need a workflow template that context repos can copy.",
+      "acceptanceCriteria": [
+        "docs/crp/workflows/append-only-guard.yml exists",
+        "Workflow triggers on pull_request to main and push to main",
+        "Runs on ubuntu-latest",
+        "Checks out repo with fetch-depth: 0 (full history)",
+        "Runs scripts/check-append-only.sh origin/main",
+        "Workflow name is Append-Only Guard",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Document CI guard in CRP spec",
+      "description": "As a developer, I need documentation on how to enable the guard.",
+      "acceptanceCriteria": [
+        "docs/crp/crp-v0.1.md updated with new CI Guard section",
+        "Documents the canonical rule in bold: Files under events/ are immutable",
+        "Explains why events are immutable (auditability, replayability, append-only context)",
+        "Provides step-by-step to copy workflow to .github/workflows/",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Update crp_init with --ci flag",
+      "description": "As a developer, I want crp_init to optionally include the CI workflow.",
+      "acceptanceCriteria": [
+        "scripts/crp_init.ts accepts --ci flag",
+        "When --ci passed, creates .github/workflows/ directory",
+        "Copies append-only-guard.yml content to .github/workflows/append-only-guard.yml",
+        "Also copies check-append-only.sh to scripts/check-append-only.sh",
+        "Makes check-append-only.sh executable",
+        "Without --ci flag, does not create workflow or script",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Create test context repo on GitHub",
+      "description": "As a developer, I need a test repo to validate the guard works.",
+      "acceptanceCriteria": [
+        "Create new GitHub repo named switchboard-context-test (or similar)",
+        "Initialize locally with crp_init --git --ci",
+        "Push initial commit with workflow and script",
+        "Verify Actions tab shows Append-Only Guard workflow",
+        "Document repo URL in progress notes",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Repo created at git@github.com:leo-guinan/switchboard-context-test.git. Initialized and pushed with workflow and script. Actions tab verification requires manual check."
+    },
+    {
+      "id": "US-006",
+      "title": "Create passing test PR (add event)",
+      "description": "As a developer, I need a PR that adds an event to verify it passes CI.",
+      "acceptanceCriteria": [
+        "Create branch test/add-event in test context repo",
+        "Add new event file: events/test-feed/2026-01-10/test-event-1.json",
+        "Event file contains valid JSON matching event schema",
+        "Open PR against main",
+        "CI passes (green check on Append-Only Guard)",
+        "Merge the PR",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Branch created and pushed. Event file added with valid JSON (event_id: 9cce0162-9704-491f-9fe0-a85c895d066e, feed_id: bf52b79e-f103-4fd6-840d-d5ea37d7df52). PR created, CI passed (green check), PR merged to main."
+    },
+    {
+      "id": "US-007",
+      "title": "Create failing test PR (modify event)",
+      "description": "As a developer, I need a PR that modifies an event to verify it fails CI.",
+      "acceptanceCriteria": [
+        "Create branch test/modify-event from main (after add-event merged)",
+        "Modify the existing event file (change any field)",
+        "Open PR against main",
+        "CI fails (red X on Append-Only Guard)",
+        "Error message lists the modified file",
+        "Do NOT merge this PR",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "Branch created and pushed. Event file modified (type and payload.message changed). PR created, CI failed correctly (red X on Append-Only Guard), error message lists modified file. PR not merged (as expected)."
+    },
+    {
+      "id": "US-008",
+      "title": "Create failing test PR (delete event)",
+      "description": "As a developer, I need a PR that deletes an event to verify it fails CI.",
+      "acceptanceCriteria": [
+        "Create branch test/delete-event from main",
+        "Delete the existing event file",
+        "Open PR against main",
+        "CI fails (red X on Append-Only Guard)",
+        "Error message lists the deleted file",
+        "Do NOT merge this PR",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": "Branch created and pushed. Event file deleted: events/test-feed/2026-01-10/test-event-1.json. PR created, CI failed correctly (red X on Append-Only Guard), error message lists deleted file. PR not merged (as expected)."
+    }
+  ]
+}

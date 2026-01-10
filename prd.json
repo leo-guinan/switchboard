@@ -1,141 +1,217 @@
 {
   "project": "Switchboard",
-  "branchName": "ralph/milestone-h5",
-  "description": "Milestone H5 — CI Append-Only Guard. PR that edits an event file fails CI.",
+  "branchName": "ralph/milestone-h6",
+  "description": "Milestone H6 — Minimal Viewer + Mirror Status. Live feed display with mirror sync status.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Create append-only check script",
-      "description": "As a developer, I need a script that detects modifications to event files.",
+      "title": "Add GET /feeds endpoint to relay",
+      "description": "As a developer, I need to list all feeds so the viewer can show available feeds.",
       "acceptanceCriteria": [
-        "scripts/check-append-only.sh exists",
-        "Script takes base ref as argument (e.g., origin/main)",
-        "Uses git diff --name-status to list changed files",
-        "Checks for M (modified) or D (deleted) status on files under events/",
-        "Exits 0 if all event changes are A (added) or no event changes",
-        "Exits 1 with clear error message if any M or D found in events/",
-        "Lists offending files in error output",
+        "GET /feeds returns array of all feeds",
+        "Each feed includes id, name, policy_json, created_at",
+        "Returns empty array if no feeds exist",
+        "Response ordered by created_at descending (newest first)",
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Create GitHub Actions workflow template",
-      "description": "As a developer, I need a workflow template that context repos can copy.",
+      "title": "Add /health endpoint to mirror worker",
+      "description": "As a developer, I need the mirror to expose sync status via health endpoint.",
       "acceptanceCriteria": [
-        "docs/crp/workflows/append-only-guard.yml exists",
-        "Workflow triggers on pull_request to main and push to main",
-        "Runs on ubuntu-latest",
-        "Checks out repo with fetch-depth: 0 (full history)",
-        "Runs scripts/check-append-only.sh origin/main",
-        "Workflow name is Append-Only Guard",
+        "Mirror starts HTTP server on PORT env var (default 3001)",
+        "GET /health returns JSON with status, last_commit_sha, last_event_id, last_event_ts",
+        "last_commit_sha is most recent commit pushed (null if none)",
+        "last_event_id is ID of most recent event written (null if none)",
+        "Includes uptime_seconds and feed_ids array",
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-003",
-      "title": "Document CI guard in CRP spec",
-      "description": "As a developer, I need documentation on how to enable the guard.",
+      "title": "Create viewer-web package scaffold",
+      "description": "As a developer, I need the viewer-web package set up with React and Tailwind.",
       "acceptanceCriteria": [
-        "docs/crp/crp-v0.1.md updated with new CI Guard section",
-        "Documents the canonical rule in bold: Files under events/ are immutable",
-        "Explains why events are immutable (auditability, replayability, append-only context)",
-        "Provides step-by-step to copy workflow to .github/workflows/",
+        "packages/viewer-web/package.json exists with react, react-dom, vite, tailwindcss",
+        "packages/viewer-web/vite.config.ts exists",
+        "packages/viewer-web/tailwind.config.js exists",
+        "packages/viewer-web/postcss.config.js exists",
+        "packages/viewer-web/index.html exists",
+        "packages/viewer-web/src/main.tsx renders App component",
+        "packages/viewer-web/src/App.tsx exists with placeholder content",
+        "packages/viewer-web/src/index.css imports Tailwind directives",
+        "npm run dev starts Vite dev server on port 5173",
         "Typecheck passes"
       ],
       "priority": 3,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-004",
-      "title": "Update crp_init with --ci flag",
-      "description": "As a developer, I want crp_init to optionally include the CI workflow.",
+      "title": "Create feed list component",
+      "description": "As a user, I want to see available feeds so I can select one to view.",
       "acceptanceCriteria": [
-        "scripts/crp_init.ts accepts --ci flag",
-        "When --ci passed, creates .github/workflows/ directory",
-        "Copies append-only-guard.yml content to .github/workflows/append-only-guard.yml",
-        "Also copies check-append-only.sh to scripts/check-append-only.sh",
-        "Makes check-append-only.sh executable",
-        "Without --ci flag, does not create workflow or script",
-        "Typecheck passes"
+        "src/components/FeedList.tsx component exists",
+        "Fetches feeds from VITE_RELAY_URL/feeds on mount",
+        "Displays each feed as clickable item with name",
+        "Shows Loading... while fetching",
+        "Shows No feeds available if empty array",
+        "Clicking feed calls onSelectFeed prop with feed_id",
+        "Selected feed has visual highlight",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-005",
-      "title": "Create test context repo on GitHub",
-      "description": "As a developer, I need a test repo to validate the guard works.",
+      "title": "Create useEventStream hook",
+      "description": "As a developer, I need a hook to subscribe to SSE events for a feed.",
       "acceptanceCriteria": [
-        "Create new GitHub repo named switchboard-context-test (or similar)",
-        "Initialize locally with crp_init --git --ci",
-        "Push initial commit with workflow and script",
-        "Verify Actions tab shows Append-Only Guard workflow",
-        "Document repo URL in progress notes",
+        "src/hooks/useEventStream.ts exports useEventStream(feedId) hook",
+        "Connects to VITE_RELAY_URL/feeds/{feedId}/stream via EventSource",
+        "Returns { events, isConnected, error }",
+        "events array holds last 100 events (newest first)",
+        "Handles connection errors and sets error state",
+        "Cleans up EventSource on unmount or feedId change",
         "Typecheck passes"
       ],
       "priority": 5,
       "passes": false,
-      "notes": "This story requires manual GitHub repo creation"
+      "notes": ""
     },
     {
       "id": "US-006",
-      "title": "Create passing test PR (add event)",
-      "description": "As a developer, I need a PR that adds an event to verify it passes CI.",
+      "title": "Create EventCard component",
+      "description": "As a user, I want to see events as formatted cards.",
       "acceptanceCriteria": [
-        "Create branch test/add-event in test context repo",
-        "Add new event file: events/test-feed/2026-01-10/test-event-1.json",
-        "Event file contains valid JSON matching event schema",
-        "Open PR against main",
-        "CI passes (green check on Append-Only Guard)",
-        "Merge the PR",
-        "Typecheck passes"
+        "src/components/EventCard.tsx component exists",
+        "Displays type as badge/header",
+        "Displays author_identity_id",
+        "Displays ts as relative time (e.g., 2 minutes ago)",
+        "Displays source.platform as small label",
+        "Shows payload preview (first 100 chars) with Show more button",
+        "Uses Tailwind: rounded border, padding, shadow-sm",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 6,
       "passes": false,
-      "notes": "This story requires manual GitHub PR creation"
+      "notes": ""
     },
     {
       "id": "US-007",
-      "title": "Create failing test PR (modify event)",
-      "description": "As a developer, I need a PR that modifies an event to verify it fails CI.",
+      "title": "Create RawEventView component",
+      "description": "As a user, I want to see events as raw JSON for debugging.",
       "acceptanceCriteria": [
-        "Create branch test/modify-event from main (after add-event merged)",
-        "Modify the existing event file (change any field)",
-        "Open PR against main",
-        "CI fails (red X on Append-Only Guard)",
-        "Error message lists the modified file",
-        "Do NOT merge this PR",
-        "Typecheck passes"
+        "src/components/RawEventView.tsx component exists",
+        "Displays full event JSON with JSON.stringify(event, null, 2)",
+        "Uses monospace font (font-mono)",
+        "Each event in pre/code block with background color",
+        "Scrollable container if content is long",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
       "passes": false,
-      "notes": "This story requires manual GitHub PR creation"
+      "notes": ""
     },
     {
       "id": "US-008",
-      "title": "Create failing test PR (delete event)",
-      "description": "As a developer, I need a PR that deletes an event to verify it fails CI.",
+      "title": "Create ViewToggle component",
+      "description": "As a user, I want to toggle between card view and raw JSON view.",
       "acceptanceCriteria": [
-        "Create branch test/delete-event from main",
-        "Delete the existing event file",
-        "Open PR against main",
-        "CI fails (red X on Append-Only Guard)",
-        "Error message lists the deleted file",
-        "Do NOT merge this PR",
-        "Typecheck passes"
+        "src/components/ViewToggle.tsx component exists",
+        "Two buttons/tabs: Cards and Raw JSON",
+        "Active view has distinct styling (bg color, border)",
+        "Calls onViewChange prop with 'cards' or 'raw'",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 8,
       "passes": false,
-      "notes": "This story requires manual GitHub PR creation"
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Create EventList component",
+      "description": "As a user, I want to see events appear in real-time.",
+      "acceptanceCriteria": [
+        "src/components/EventList.tsx component exists",
+        "Uses useEventStream hook with selected feedId",
+        "Shows connection status: Connected (green) or Disconnected (red)",
+        "Shows event count",
+        "Renders EventCard or RawEventView based on viewMode prop",
+        "New events appear at top automatically",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Create MirrorStatus component",
+      "description": "As a user, I want to see mirror sync status.",
+      "acceptanceCriteria": [
+        "src/components/MirrorStatus.tsx component exists",
+        "Fetches from VITE_MIRROR_URL/health on mount",
+        "Displays last_commit_sha (first 7 chars)",
+        "Displays last_event_id",
+        "Displays last_event_ts as relative time",
+        "Shows Mirror offline if fetch fails",
+        "Polls every 10 seconds for updates",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Create main App layout",
+      "description": "As a user, I want a cohesive layout combining all components.",
+      "acceptanceCriteria": [
+        "App.tsx has header with Switchboard Viewer title",
+        "Sidebar contains FeedList and MirrorStatus",
+        "Main area contains ViewToggle and EventList",
+        "Shows Select a feed message when no feed selected",
+        "Layout uses Tailwind grid or flex",
+        "Responsive: sidebar stacks above main on small screens",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Add viewer-web to docker-compose",
+      "description": "As a developer, I want to run viewer with docker-compose.",
+      "acceptanceCriteria": [
+        "packages/viewer-web/Dockerfile exists",
+        "Uses node base image, runs npm run build, serves with nginx or serve",
+        "infra/docker-compose.yml has viewer-web service",
+        "Viewer accessible on port 5173",
+        "VITE_RELAY_URL and VITE_MIRROR_URL configured for container network",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
     }
   ]
 }

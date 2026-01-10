@@ -38,6 +38,18 @@ app.post("/feeds", async (req, res) => {
   }
 });
 
+app.get("/feeds", async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, policy_json, created_at FROM feeds ORDER BY created_at DESC`
+    );
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Failed to list feeds:", error);
+    res.status(500).json({ error: "Failed to list feeds" });
+  }
+});
+
 app.get("/feeds/:id", async (req, res) => {
   const { id } = req.params;
 
