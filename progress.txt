@@ -420,3 +420,16 @@ Thread: https://ampcode.com/threads/T-019ba98e-6c96-738c-b118-e485b26707e8
   - Use new Date().toISOString() for ISO-8601 formatted timestamps
   - .crp/ directory already exists from earlier directory creation step
 ---
+
+## 2026-01-10 - US-011 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98f-6926-7267-87b7-7f25bb088644
+- Added optional --git flag to crp_init script
+- Files modified:
+  - scripts/crp_init.ts (added execSync import, --git flag parsing, git init/add/commit logic)
+- When --git flag passed, runs git init, git add -A, and git commit with "Initialize context repo"
+- Without --git flag, does not touch git
+- **Learnings for future iterations:**
+  - Use execSync from child_process for running shell commands synchronously
+  - Use { cwd: path, stdio: "inherit" } to run commands in a specific directory and show output
+  - Filter positional args from flags with .filter() to support flags in any position
+---
