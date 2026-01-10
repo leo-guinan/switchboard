@@ -502,3 +502,16 @@ Thread: https://ampcode.com/threads/T-019ba997-5745-748a-b88e-ffff9d0a14a4
   - Use fs.existsSync() to check before creating for idempotency
   - execSync with stdio: "inherit" shows git output to user
 ---
+
+## 2026-01-10 - US-006 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba998-6988-768e-9118-bb2faea986da
+- Implemented writeEvent(repoPath, event) function in src/repo.ts
+- Files modified:
+  - packages/mirror-worker/src/repo.ts (added writeEvent function with Event import)
+- Extracts date from event.ts (ISO-8601) using substring(0, 10) for YYYY-MM-DD
+- Creates directory structure events/{feed_id}/{YYYY-MM-DD}/ with recursive mkdir
+- Writes event JSON with 2-space indentation
+- **Learnings for future iterations:**
+  - Import Event type from @switchboard/shared for type safety
+  - Use event.ts.substring(0, 10) to extract YYYY-MM-DD from ISO-8601 timestamp
+---
