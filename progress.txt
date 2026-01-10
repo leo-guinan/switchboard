@@ -487,3 +487,18 @@ Thread: https://ampcode.com/threads/T-019ba996-49d3-71ac-ade7-ce4d7ffb3fa1
   - Store backoffMs in closure to persist across reconnect attempts
   - Reset backoff in onopen, not after successful connect() call
 ---
+
+## 2026-01-10 - US-005 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba997-5745-748a-b88e-ffff9d0a14a4
+- Created initRepo() function in src/repo.ts
+- Files created:
+  - packages/mirror-worker/src/repo.ts
+- initRepo() creates repo directory if it doesn't exist
+- Runs git init if .git folder doesn't exist
+- Creates CRP directory structure: events/, snapshots/, policy/, .crp/
+- Creates .crp/manifest.json with version "0.1" and created_at timestamp
+- **Learnings for future iterations:**
+  - Pattern similar to scripts/crp_init.ts but as a reusable function
+  - Use fs.existsSync() to check before creating for idempotency
+  - execSync with stdio: "inherit" shows git output to user
+---
