@@ -632,3 +632,16 @@ Thread: https://ampcode.com/threads/T-019ba9bb-240b-77d8-8452-ebc0880eb309
   - git diff --name-status returns tab-separated "STATUS\tFILENAME" format
   - Use line.split("\t") to parse status and filepath
 ---
+
+## 2026-01-10 - US-005 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9bc-1be5-7198-aff7-dc1fb1d11fa9
+- Implemented pushToRemote(repoPath, branch) function in src/git.ts
+- Files modified:
+  - packages/mirror-worker/src/git.ts (added pushToRemote function)
+- Runs git push origin {branch} with suppressed output
+- Returns true on success, logs "Pushed to GitHub"
+- Returns false on failure, logs error but does not throw
+- **Learnings for future iterations:**
+  - Consistent pattern with other git functions: use stdio: ["pipe", "pipe", "pipe"] to capture errors
+  - Log success message exactly as specified in acceptance criteria
+---
