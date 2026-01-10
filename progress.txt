@@ -445,3 +445,16 @@ Thread: https://ampcode.com/threads/T-019ba993-1847-7245-9803-f36353fe4d57
   - eventsource v2.x provides ESM compatible SSE client for Node.js
   - @types/eventsource provides TypeScript type definitions
 ---
+
+## 2026-01-10 - US-002 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba994-5127-7111-bd27-69cc19f6c3f2
+- Created configuration module via environment variables
+- Files created:
+  - packages/mirror-worker/src/config.ts (getConfig() function with Config interface)
+- Required env vars: RELAY_URL, FEED_IDS, CONTEXT_REPO_PATH
+- Optional env vars: COMMIT_BATCH_SIZE (default 10), COMMIT_BATCH_TIMEOUT_MS (default 5000)
+- Throws clear error messages for missing required vars
+- **Learnings for future iterations:**
+  - FEED_IDS is comma-separated and parsed with split/trim/filter
+  - parseInt with radix 10 for numeric env vars
+---
