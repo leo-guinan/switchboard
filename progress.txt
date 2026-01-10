@@ -1013,3 +1013,22 @@ Thread: https://ampcode.com/threads/T-019baa06-1650-757d-97a3-b9a633b3a910
   - Export ViewMode type from component for parent component type safety
   - Use consistent blue-600 highlight color across components
 ---
+
+## 2026-01-10 - US-009 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa07-8f5c-703b-913b-2c950b09213e
+- Created EventList component for real-time event display
+- Files created:
+  - packages/viewer-web/src/components/EventList.tsx
+- Component features:
+  - Uses useEventStream hook with selected feedId
+  - Shows connection status: Connected (green dot) or Disconnected (red dot)
+  - Shows event count (e.g., "5 events")
+  - Renders EventCard for "cards" viewMode or RawEventView for "raw" viewMode
+  - New events appear at top automatically (from useEventStream hook)
+  - Shows "Select a feed to view events" when no feed selected
+  - Shows error message if connection fails
+- **Learnings for future iterations:**
+  - Use conditional rendering based on viewMode prop
+  - Reuse existing EventCard and RawEventView components
+  - Connection status shown with colored dot + text for clarity
+---
