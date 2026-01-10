@@ -128,4 +128,38 @@ The `source` field describes where the event originated:
 
 ## Policy
 
-_To be documented in subsequent user stories._
+The policy file (`policy/policy.json`) defines access control for the context repo. This section documents the structure of the policy file.
+
+### Policy File Structure
+
+The policy file is a JSON document with the following structure:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `members` | array | List of member identities with access to this context repo |
+| `permissions` | object | Permission definitions mapping roles or identities to access levels |
+
+### Members Array
+
+The `members` array contains identity references for users or agents that have access to this context repo. Each member entry specifies an identity that is recognized by the policy.
+
+### Permissions Object
+
+The `permissions` object maps identities or roles to their access levels. The specific permission schema is implementation-defined and may include:
+
+- Read access to events and snapshots
+- Write access to create new events
+- Administrative access to modify policy
+
+### Example Policy
+
+```json
+{
+  "members": [],
+  "permissions": {}
+}
+```
+
+### Policy Enforcement
+
+Policy enforcement is reserved for future specification. Implementations SHOULD read the policy file but MAY defer enforcement to a later version of CRP.
