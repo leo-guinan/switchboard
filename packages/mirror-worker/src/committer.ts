@@ -1,5 +1,7 @@
 import { execSync } from "child_process";
 import type { Event } from "@switchboard/shared";
+import type { GitHubConfig } from "./config.js";
+import { checkAppendOnly, fetchAndRebase, pushToRemote } from "./git.js";
 
 export class Committer {
   private repoPath: string;
@@ -7,11 +9,18 @@ export class Committer {
   private timeoutMs: number;
   private pendingEvents: Event[] = [];
   private timeoutHandle: NodeJS.Timeout | null = null;
+  private githubConfig?: GitHubConfig;
 
-  constructor(repoPath: string, batchSize: number, timeoutMs: number) {
+  constructor(
+    repoPath: string,
+    batchSize: number,
+    timeoutMs: number,
+    githubConfig?: GitHubConfig
+  ) {
     this.repoPath = repoPath;
     this.batchSize = batchSize;
     this.timeoutMs = timeoutMs;
+    this.githubConfig = githubConfig;
   }
 
   addEvent(event: Event): void {
@@ -58,6 +67,33 @@ export class Committer {
     });
 
     console.log(`Committed ${eventCount} event(s)`);
+
+    if (this.githubConfig) {
+      this.pushToGitHub();
+    }
+  }
+
+  private pushToGitHub(): void {
+    if (!this.githubConfig) {
+      return;
+    }
+
+    const { branch } = this.githubConfig;
+
+    if (!checkAppendOnly(this.repoPath, branch)) {
+      console.error("Append-only check failed, skipping push");
+      return;
+    }
+
+    if (!fetchAndRebase(this.repoPath, branch)) {
+      console.error("Fetch/rebase failed, skipping push (will retry next batch)");
+      return;
+    }
+
+    if (!pushToRemote(this.repoPath, branch)) {
+      console.error("Push failed, will retry next batch");
+      return;
+    }
   }
 
   flush(): void {
