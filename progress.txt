@@ -515,3 +515,19 @@ Thread: https://ampcode.com/threads/T-019ba998-6988-768e-9118-bb2faea986da
   - Import Event type from @switchboard/shared for type safety
   - Use event.ts.substring(0, 10) to extract YYYY-MM-DD from ISO-8601 timestamp
 ---
+
+## 2026-01-10 - US-007 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba999-8c5b-74d6-8308-4abe6b4c146c
+- Created Committer class in src/committer.ts
+- Files created:
+  - packages/mirror-worker/src/committer.ts
+- Committer constructor accepts repoPath, batchSize, and timeoutMs
+- addEvent() queues event and triggers commit if batch size reached, otherwise schedules timeout
+- Timeout schedules commit after timeoutMs if pending events exist
+- commit() runs git add -A then git commit with "Mirror: add {n} event(s)" message
+- flush() method added for graceful shutdown (commits any pending events)
+- **Learnings for future iterations:**
+  - Use NodeJS.Timeout type for timeout handle
+  - Clear timeout before committing to prevent duplicate commits
+  - flush() method useful for graceful shutdown scenarios
+---
