@@ -200,3 +200,17 @@ Thread: https://ampcode.com/threads/T-019ba8c0-0e19-710c-a7f3-e6a10c173821
   - The events table stores source info in separate columns (source_platform, source_adapter_id, source_msg_id)
   - Response must reconstruct the nested source object from flat DB columns
 ---
+
+## 2026-01-10 - US-004 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c2-5c69-74d9-9cd6-9ddd37fbaad3
+- Implemented event idempotency for POST /feeds/:id/events endpoint
+- Files modified:
+  - packages/relay-api/src/index.ts (added duplicate detection before insert)
+- Checks for existing event by event_id first, returns 200 if found
+- Checks for existing event by (source_platform, source_msg_id) when source_msg_id is not null, returns 200 if found
+- Only inserts and returns 201 if no duplicates found
+- **Learnings for future iterations:**
+  - Check by primary key (event_id) first for efficiency
+  - Only check source-based dedup when source_msg_id is not null (matches partial unique index)
+  - Return 200 for existing events, 201 for newly created
+---
