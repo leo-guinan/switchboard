@@ -961,3 +961,22 @@ Thread: https://ampcode.com/threads/T-019baa01-6418-76dd-9de0-76174ba7d237
   - EventSource onopen/onerror/onmessage handlers manage connection state
   - Limit events array with slice(0, MAX_EVENTS) for memory management
 ---
+
+## 2026-01-10 - US-006 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa03-0742-7308-bf96-57cd2b380e9c
+- Created EventCard component for displaying events as formatted cards
+- Files created:
+  - packages/viewer-web/src/components/EventCard.tsx
+- Component features:
+  - Displays event type as blue badge/header
+  - Displays author_identity_id with label
+  - Displays timestamp as relative time (e.g., "2 minutes ago")
+  - Displays source.platform as small gray label
+  - Shows payload preview (first 100 chars) with "Show more" button for expansion
+  - Uses Tailwind: rounded border, padding (p-4), shadow-sm, white background
+- Helper function formatRelativeTime() converts ISO timestamps to human-readable format
+- **Learnings for future iterations:**
+  - Import EventData type from useEventStream hook for consistency
+  - Use useState for expand/collapse toggle state
+  - Tailwind classes: rounded, border, shadow-sm for card styling
+---
