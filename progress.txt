@@ -699,3 +699,23 @@ Thread: https://ampcode.com/threads/T-019ba9c1-7215-707b-b304-6d9d68615fa0
   - GitHub mode was already logging at startup, just needed to wire up configureRemote and pass to Committer
   - configureRemote must be called after initRepo() to ensure git repo exists
 ---
+
+## 2026-01-10 - US-010 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9c2-ff3d-77a9-893e-aa423ae1fdf5
+- Created integration test for GitHub push flow
+- Files created:
+  - packages/mirror-worker/src/__tests__/github-push.test.ts
+- Test workflow:
+  1. Creates temp directories for work repo and bare remote (mock GitHub)
+  2. Initializes bare remote with git init --bare
+  3. Creates initial commit in work dir and pushes to bare remote
+  4. Creates feed via POST /feeds
+  5. Starts mirror process with GITHUB_PAT, GITHUB_REPO_URL pointing to bare remote
+  6. Posts 2 events to relay API
+  7. Verifies git log on bare remote contains "Mirror:" commit
+  8. Clones bare remote and verifies event files exist with correct content
+- **Learnings for future iterations:**
+  - Use file:// URL scheme for local bare repo as mock GitHub remote
+  - Don't hardcode date in test assertions - extract from actual file listing
+  - fs.mkdirSync must create bare remote directory before git init --bare
+---
