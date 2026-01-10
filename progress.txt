@@ -333,3 +333,17 @@ Thread: https://ampcode.com/threads/T-019ba987-9e55-774a-a97a-82a0a8c56659
   - Markdown documentation changes don't require code changes
   - Typecheck passes trivially for documentation-only stories
 ---
+
+## 2026-01-10 - US-004 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba988-91f4-767e-ae26-d25fe36094c7
+- Documented Event Format section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added Event Format section with required/optional fields, source object, and example)
+- Event format documents JSON structure with required fields: event_id, feed_id, type, author_identity_id, source, ts, payload
+- Documents refs as optional
+- Includes source object structure: platform, adapter_id, source_msg_id
+- Includes example event JSON
+- **Learnings for future iterations:**
+  - Documentation aligns with EventSchema in packages/shared/schema/event.ts
+  - Use markdown tables for clean field documentation
+---
