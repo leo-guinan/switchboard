@@ -1,4 +1,5 @@
 ## Codebase Patterns
+- Use `./scripts/check-append-only.sh origin/main` to validate append-only events
 - Use `npx tsc --noEmit` for typecheck
 - Monorepo uses npm workspaces
 - At least one .ts file must exist for typecheck to pass
@@ -718,4 +719,19 @@ Thread: https://ampcode.com/threads/T-019ba9c2-ff3d-77a9-893e-aa423ae1fdf5
   - Use file:// URL scheme for local bare repo as mock GitHub remote
   - Don't hardcode date in test assertions - extract from actual file listing
   - fs.mkdirSync must create bare remote directory before git init --bare
+---
+
+## 2026-01-10 - US-001 (Milestone H5)
+Thread: https://ampcode.com/threads/T-019ba9cc-5d03-71bc-881b-62caed2e8c1e
+- Created append-only check script for CI
+- Files created:
+  - scripts/check-append-only.sh
+- Script validates that files under events/ are only added (A), never modified (M) or deleted (D)
+- Takes base ref as argument (e.g., origin/main)
+- Uses git diff --name-status to detect changes
+- Exits 0 if clean, exits 1 with offending file list if violations found
+- **Learnings for future iterations:**
+  - Use process substitution `< <(git diff ...)` to read git output line by line
+  - Use IFS=$'\t' to split tab-separated git diff output
+  - Pattern match with `case` for bash path matching (e.g., events/*)
 ---
