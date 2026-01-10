@@ -1,0 +1,26 @@
+## Codebase Patterns
+- Use `npx tsc --noEmit` for typecheck
+- Monorepo uses npm workspaces
+- At least one .ts file must exist for typecheck to pass
+
+---
+
+## 2026-01-10 - US-001
+Thread: https://ampcode.com/threads/T-019ba8aa-f566-7095-942f-981eb1127ebd
+- Created base monorepo directory structure
+- Files created:
+  - packages/relay-api/package.json (stub)
+  - packages/mirror-worker/README.md (placeholder)
+  - packages/viewer-web/README.md (placeholder)
+  - packages/adapters/.gitkeep
+  - packages/shared/schema/.gitkeep
+  - packages/shared/types/.gitkeep
+  - packages/shared/utils/.gitkeep
+  - packages/shared/index.ts (entry point)
+  - package.json (root with workspaces)
+  - tsconfig.json (root config)
+  - .gitignore
+- **Learnings for future iterations:**
+  - TypeScript requires at least one .ts file to pass typecheck
+  - Added packages/shared/index.ts as placeholder
+---
