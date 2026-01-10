@@ -547,3 +547,17 @@ Thread: https://ampcode.com/threads/T-019ba99a-abc3-778c-9847-a8a941312926
   - Use .js extension in ESM imports even for TypeScript files
   - Cast FeedEvent to Event type since they share same structure
 ---
+
+## 2026-01-10 - US-009 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba99b-a2e5-75e8-9387-e042cc074f5b
+- Implemented graceful shutdown for mirror-worker
+- Files modified:
+  - packages/mirror-worker/src/sse.ts (added SSEConnection interface with close() method)
+  - packages/mirror-worker/src/index.ts (added SIGINT/SIGTERM handlers, shutdown function)
+- SSE connections now return SSEConnection object with close() that stops reconnection and closes EventSource
+- Shutdown function: closes all SSE connections, calls committer.flush(), logs shutdown message, exits with code 0
+- **Learnings for future iterations:**
+  - Use a `closed` flag to prevent reconnection attempts after shutdown
+  - Clear pending reconnect timeouts when closing SSE connections
+  - Signal handlers can use synchronous functions when operations are synchronous (flush uses execSync)
+---
