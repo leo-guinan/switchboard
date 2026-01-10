@@ -212,6 +212,74 @@
       "priority": 12,
       "passes": true,
       "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Configure nginx reverse proxy for API routes",
+      "description": "As a developer, I need nginx to proxy API calls to avoid CORS issues.",
+      "acceptanceCriteria": [
+        "packages/viewer-web/nginx.conf exists",
+        "Proxies /api/* to http://relay-api:3000/* (strips /api prefix)",
+        "Proxies /mirror/* to http://mirror-worker:3001/* (strips /mirror prefix)",
+        "Serves static files from /usr/share/nginx/html for all other routes",
+        "Handles SPA routing (try_files $uri /index.html)",
+        "Dockerfile uses nginx.conf in final image",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Update viewer to use relative API URLs",
+      "description": "As a developer, I need the viewer to use proxied paths instead of direct URLs.",
+      "acceptanceCriteria": [
+        "FeedList fetches from /api/feeds (relative path)",
+        "useEventStream connects to /api/feeds/{feedId}/stream",
+        "MirrorStatus fetches from /mirror/health",
+        "Remove or ignore VITE_RELAY_URL and VITE_MIRROR_URL env vars",
+        "All API calls work through nginx proxy",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Add mirror-worker service to docker-compose",
+      "description": "As a developer, I need mirror-worker running in compose for viewer to show status.",
+      "acceptanceCriteria": [
+        "packages/mirror-worker/Dockerfile exists",
+        "infra/docker-compose.yml has mirror-worker service",
+        "Mirror-worker depends on relay-api",
+        "Configures RELAY_URL, FEED_IDS, CONTEXT_REPO_PATH, PORT=3001",
+        "Creates /data/context-repo volume for git repo",
+        "Health endpoint accessible at mirror-worker:3001/health from nginx",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Verify full stack works via docker-compose",
+      "description": "As a developer, I want to verify the complete system works end-to-end.",
+      "acceptanceCriteria": [
+        "docker compose up starts postgres, relay-api, mirror-worker, viewer-web",
+        "Viewer loads at http://localhost:5173",
+        "Feed list loads without CORS errors",
+        "Mirror status shows (not 'Mirror offline')",
+        "Creating feed and posting event shows in viewer live",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
     }
   ]
 }

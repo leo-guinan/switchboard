@@ -34,8 +34,8 @@ services:
 
   relay-api:
     build:
-      context: ../packages/relay-api
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: packages/relay-api/Dockerfile
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       PORT: 3000
