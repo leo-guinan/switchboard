@@ -1112,3 +1112,17 @@ Thread: https://ampcode.com/threads/T-019baa2b-2547-758f-aea5-e23e0244c248
   - SSE proxying requires: proxy_buffering off, proxy_cache off, chunked_transfer_encoding off
   - proxy_http_version 1.1 needed for proper keepalive connections
 ---
+
+## 2026-01-10 - US-014 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa2c-b49c-723a-b1f4-2687a37c6cc2
+- Updated viewer components to use relative API URLs through nginx proxy
+- Files modified:
+  - packages/viewer-web/src/components/FeedList.tsx (uses /api/feeds)
+  - packages/viewer-web/src/hooks/useEventStream.ts (uses /api/feeds/{feedId}/stream)
+  - packages/viewer-web/src/components/MirrorStatus.tsx (uses /mirror/health)
+- Removed VITE_RELAY_URL and VITE_MIRROR_URL env var usage from all components
+- All API calls now work through nginx reverse proxy
+- **Learnings for future iterations:**
+  - Relative URLs simplify deployment (no need to configure env vars per environment)
+  - nginx proxy handles CORS issues automatically
+---
