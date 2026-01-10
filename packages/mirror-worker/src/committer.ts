@@ -10,17 +10,20 @@ export class Committer {
   private pendingEvents: Event[] = [];
   private timeoutHandle: NodeJS.Timeout | null = null;
   private githubConfig?: GitHubConfig;
+  private onCommitCallback?: (pushed: boolean) => void;
 
   constructor(
     repoPath: string,
     batchSize: number,
     timeoutMs: number,
-    githubConfig?: GitHubConfig
+    githubConfig?: GitHubConfig,
+    onCommitCallback?: (pushed: boolean) => void
   ) {
     this.repoPath = repoPath;
     this.batchSize = batchSize;
     this.timeoutMs = timeoutMs;
     this.githubConfig = githubConfig;
+    this.onCommitCallback = onCommitCallback;
   }
 
   addEvent(event: Event): void {
@@ -68,32 +71,39 @@ export class Committer {
 
     console.log(`Committed ${eventCount} event(s)`);
 
+    let pushed = false;
     if (this.githubConfig) {
-      this.pushToGitHub();
+      pushed = this.pushToGitHub();
+    }
+    
+    if (this.onCommitCallback) {
+      this.onCommitCallback(pushed);
     }
   }
 
-  private pushToGitHub(): void {
+  private pushToGitHub(): boolean {
     if (!this.githubConfig) {
-      return;
+      return false;
     }
 
     const { branch } = this.githubConfig;
 
     if (!checkAppendOnly(this.repoPath, branch)) {
       console.error("Append-only check failed, skipping push");
-      return;
+      return false;
     }
 
     if (!fetchAndRebase(this.repoPath, branch)) {
       console.error("Fetch/rebase failed, skipping push (will retry next batch)");
-      return;
+      return false;
     }
 
     if (!pushToRemote(this.repoPath, branch)) {
       console.error("Push failed, will retry next batch");
-      return;
+      return false;
     }
+
+    return true;
   }
 
   flush(): void {

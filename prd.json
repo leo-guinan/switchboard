@@ -31,7 +31,7 @@
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -50,9 +50,9 @@
         "npm run dev starts Vite dev server on port 5173",
         "Typecheck passes"
       ],
-      "priority": 3,
-      "passes": false,
-      "notes": ""
+        "priority": 3,
+        "passes": true,
+        "notes": ""
     },
     {
       "id": "US-004",

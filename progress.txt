@@ -874,3 +874,51 @@ Thread: https://ampcode.com/threads/T-019ba9e8-306b-722f-aa90-ee353451e490
   - GET /feeds must be defined before GET /feeds/:id to avoid route conflicts
   - Use ORDER BY created_at DESC for newest-first ordering
 ---
+
+## 2026-01-10 - US-002 (Milestone H6)
+- Added /health endpoint to mirror worker
+- Files created:
+  - packages/mirror-worker/src/health.ts (HealthServer class with Express server)
+- Files modified:
+  - packages/mirror-worker/package.json (added express and @types/express)
+  - packages/mirror-worker/src/committer.ts (added onCommitCallback to track pushes)
+  - packages/mirror-worker/src/index.ts (integrated health server)
+- Health server starts HTTP server on PORT env var (default 3001)
+- GET /health returns JSON with:
+  - status: "ok"
+  - last_commit_sha: most recent commit SHA that was pushed (null if none)
+  - last_event_id: ID of most recent event written (null if none)
+  - last_event_ts: timestamp of most recent event (null if none)
+  - uptime_seconds: seconds since mirror worker started
+  - feed_ids: array of feed IDs being mirrored
+- Tracks last event on each event received
+- Tracks last commit SHA only after successful push (per requirement)
+- Health server stops gracefully on shutdown
+- **Learnings for future iterations:**
+  - Use Express for consistency with relay-api
+  - Track state in HealthServer class for clean separation
+  - Callback pattern in Committer allows health server to track pushes
+  - In local-only mode (no GitHub), last_commit_sha remains null (nothing is "pushed")
+---
+
+## 2026-01-10 - US-003 (Milestone H6)
+- Created viewer-web package scaffold with React, Vite, and Tailwind
+- Files created:
+  - packages/viewer-web/package.json (with react, react-dom, vite, tailwindcss dependencies)
+  - packages/viewer-web/vite.config.ts (Vite config with React plugin, port 5173)
+  - packages/viewer-web/tailwind.config.js (Tailwind config with content paths)
+  - packages/viewer-web/postcss.config.js (PostCSS config with Tailwind and Autoprefixer)
+  - packages/viewer-web/index.html (HTML entry point)
+  - packages/viewer-web/src/main.tsx (React entry point, renders App)
+  - packages/viewer-web/src/App.tsx (App component with placeholder content)
+  - packages/viewer-web/src/index.css (Tailwind directives: @tailwind base/components/utilities)
+  - packages/viewer-web/tsconfig.json (extends root, React JSX config)
+  - packages/viewer-web/tsconfig.node.json (Node config for vite.config.ts)
+- Vite dev server configured to run on port 5173
+- Build and typecheck verified working
+- **Learnings for future iterations:**
+  - Use @vitejs/plugin-react for React support in Vite
+  - Tailwind config needs content paths to scan for classes
+  - PostCSS config required for Tailwind processing
+  - Exclude vite.config.ts from root typecheck to avoid version conflicts
+---
