@@ -980,3 +980,20 @@ Thread: https://ampcode.com/threads/T-019baa03-0742-7308-bf96-57cd2b380e9c
   - Use useState for expand/collapse toggle state
   - Tailwind classes: rounded, border, shadow-sm for card styling
 ---
+
+## 2026-01-10 - US-007 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa04-76ea-703b-bdd6-811c732fba6f
+- Created RawEventView component for displaying events as raw JSON
+- Files created:
+  - packages/viewer-web/src/components/RawEventView.tsx
+- Component features:
+  - Displays full event JSON with JSON.stringify(event, null, 2)
+  - Uses monospace font (font-mono) for code readability
+  - Each event rendered in pre/code block with gray background (bg-gray-100)
+  - Scrollable container with max-h-[600px] and overflow-y-auto
+  - Maps over events array using event_id as key
+- **Learnings for future iterations:**
+  - Import EventData type from useEventStream hook for consistency
+  - Use pre/code blocks for JSON formatting
+  - Tailwind max-h-[value] with overflow-y-auto for scrollable containers
+---
