@@ -763,3 +763,19 @@ Thread: https://ampcode.com/threads/T-019ba9cf-eb6c-72fe-881e-d8854092492c
   - Documentation changes don't require code changes, just markdown updates
   - Cross-reference the workflow file and script paths for clarity
 ---
+
+## 2026-01-10 - US-004 (Milestone H5)
+Thread: https://ampcode.com/threads/T-019ba9d1-7cfe-7179-bf79-2f6f47baab65
+- Updated crp_init.ts to accept --ci flag
+- Files modified:
+  - scripts/crp_init.ts
+- When --ci is passed:
+  - Creates .github/workflows/ directory
+  - Writes append-only-guard.yml workflow file
+  - Creates scripts/ directory
+  - Writes check-append-only.sh script with executable permissions (mode 0o755)
+- Without --ci flag, no CI files are created
+- **Learnings for future iterations:**
+  - Use fs.writeFileSync with { mode: 0o755 } to make files executable
+  - Use !arg.startsWith("--") to filter all flag arguments at once
+---
