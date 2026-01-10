@@ -861,3 +861,16 @@ All user stories completed:
 - Test coverage: all three scenarios (add, modify, delete) validated
 - Documentation complete with step-by-step setup instructions
 ---
+
+## 2026-01-10 - US-001 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019ba9e8-306b-722f-aa90-ee353451e490
+- Implemented GET /feeds endpoint to list all feeds
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds route)
+- Returns array of all feeds with id, name, policy_json, created_at
+- Returns empty array if no feeds exist
+- Ordered by created_at descending (newest first)
+- **Learnings for future iterations:**
+  - GET /feeds must be defined before GET /feeds/:id to avoid route conflicts
+  - Use ORDER BY created_at DESC for newest-first ordering
+---
