@@ -1093,3 +1093,22 @@ Thread: https://ampcode.com/threads/T-019baa0b-c78d-71e1-b40a-ae088f97d10c
   - Multi-stage with nginx:alpine is lightweight for serving static SPA
   - SPA routing requires try_files $uri /index.html for client-side routing
 ---
+
+## 2026-01-10 - US-013 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa2b-2547-758f-aea5-e23e0244c248
+- Created nginx.conf with reverse proxy configuration for API routes
+- Files created:
+  - packages/viewer-web/nginx.conf
+- Files modified:
+  - packages/viewer-web/Dockerfile (uses nginx.conf instead of inline config)
+- nginx.conf features:
+  - Proxies /api/* to http://relay-api:3000/* (strips /api prefix)
+  - Proxies /mirror/* to http://mirror-worker:3001/* (strips /mirror prefix)
+  - SSE support with proxy_buffering off and chunked_transfer_encoding off
+  - SPA routing with try_files $uri /index.html
+  - Listens on port 5173
+- **Learnings for future iterations:**
+  - Use proxy_pass with trailing slash to strip the location prefix
+  - SSE proxying requires: proxy_buffering off, proxy_cache off, chunked_transfer_encoding off
+  - proxy_http_version 1.1 needed for proper keepalive connections
+---
