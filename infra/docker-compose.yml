@@ -47,6 +47,20 @@ services:
       migrations:
         condition: service_completed_successfully
 
+  mirror-worker:
+    build:
+      context: ..
+      dockerfile: packages/mirror-worker/Dockerfile
+    environment:
+      RELAY_URL: http://relay-api:3000
+      FEED_IDS: ""
+      CONTEXT_REPO_PATH: /data/context-repo
+      PORT: 3001
+    volumes:
+      - mirror-repo:/data/context-repo
+    depends_on:
+      - relay-api
+
   viewer-web:
     build:
       context: ..
@@ -58,6 +72,8 @@ services:
       - "5173:5173"
     depends_on:
       - relay-api
+      - mirror-worker
 
 volumes:
   pgdata:
+  mirror-repo:
