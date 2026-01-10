@@ -58,6 +58,34 @@ app.get("/feeds/:id", async (req, res) => {
   }
 });
 
+app.get("/feeds/:id/stream", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const feedResult = await pool.query(
+      `SELECT id FROM feeds WHERE id = $1`,
+      [id]
+    );
+
+    if (feedResult.rows.length === 0) {
+      res.status(404).json({ error: "Feed not found" });
+      return;
+    }
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    req.on("close", () => {
+      res.end();
+    });
+  } catch (error) {
+    console.error("Failed to setup SSE stream:", error);
+    res.status(500).json({ error: "Failed to setup stream" });
+  }
+});
+
 app.post("/feeds/:id/events", async (req, res) => {
   const { id } = req.params;
 
