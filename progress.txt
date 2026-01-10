@@ -308,3 +308,14 @@ Thread: https://ampcode.com/threads/T-019ba985-8eb8-703b-9659-a3c2b21caf6f
 - **Learnings for future iterations:**
   - Section placeholders with "_To be documented in subsequent user stories._" work well for scaffolding
 ---
+
+## 2026-01-10 - US-002 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba986-c37b-724f-b483-6e68925987c7
+- Documented Directory Layout section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added events/, snapshots/, policy/, .crp/ directory documentation)
+- Each directory has description of its purpose
+- **Learnings for future iterations:**
+  - Use subsections (###) for individual directory documentation within the Directory Layout section
+  - Markdown documentation changes don't affect typecheck
+---
