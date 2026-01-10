@@ -1,0 +1,585 @@
+## Codebase Patterns
+- Use `npx tsc --noEmit` for typecheck
+- Monorepo uses npm workspaces
+- At least one .ts file must exist for typecheck to pass
+- Use `condition: service_completed_successfully` for one-shot migration containers in docker-compose
+- Shared package must be built before relay-api can run (`npm run build` in shared)
+- Use vitest for testing in relay-api (`npm run test`)
+- Integration tests run against live server at http://localhost:3000
+
+---
+
+## 2026-01-10 - US-001
+Thread: https://ampcode.com/threads/T-019ba8aa-f566-7095-942f-981eb1127ebd
+- Created base monorepo directory structure
+- Files created:
+  - packages/relay-api/package.json (stub)
+  - packages/mirror-worker/README.md (placeholder)
+  - packages/viewer-web/README.md (placeholder)
+  - packages/adapters/.gitkeep
+  - packages/shared/schema/.gitkeep
+  - packages/shared/types/.gitkeep
+  - packages/shared/utils/.gitkeep
+  - packages/shared/index.ts (entry point)
+  - package.json (root with workspaces)
+  - tsconfig.json (root config)
+  - .gitignore
+- **Learnings for future iterations:**
+  - TypeScript requires at least one .ts file to pass typecheck
+  - Added packages/shared/index.ts as placeholder
+---
+
+## 2026-01-10 - US-002
+Thread: https://ampcode.com/threads/T-019ba8ac-72b8-7469-a173-db217fe30342
+- Created infra and docs directories
+- Files created:
+  - infra/migrations/.gitkeep
+  - docs/prd/milestone-h0.md (placeholder)
+  - docs/crp/crp-v0.1.md (placeholder)
+- **Learnings for future iterations:**
+  - Simple directory scaffolding doesn't require additional patterns
+---
+
+## 2026-01-10 - US-003
+Thread: https://ampcode.com/threads/T-019ba8ad-5ee7-7189-8d09-c09ea5b9e84b
+- Created shared package with Zod event schema
+- Files created/modified:
+  - packages/shared/package.json (with zod dependency)
+  - packages/shared/schema/event.ts (EventSchema, SourceSchema, and inferred types)
+  - packages/shared/index.ts (exports schema and types)
+- Removed packages/shared/schema/.gitkeep (no longer needed)
+- **Learnings for future iterations:**
+  - Use z.string().uuid() for UUID validation
+  - Use z.string().datetime() for ISO-8601 timestamp validation
+  - Use z.object({}).passthrough() for flexible objects that allow additional fields
+  - Sample event validation can be tested with node directly using require('zod')
+---
+
+## 2026-01-10 - US-004
+Thread: https://ampcode.com/threads/T-019ba8af-0150-751a-be29-a0b00ed57221
+- Created database migration for feeds table
+- Files created:
+  - infra/migrations/001_create_feeds.sql
+- **Learnings for future iterations:**
+  - Use CREATE TABLE IF NOT EXISTS for idempotent migrations
+  - gen_random_uuid() is the Postgres function for default UUID generation
+  - JSONB is the preferred type for JSON columns in Postgres
+---
+
+## 2026-01-10 - US-005
+Thread: https://ampcode.com/threads/T-019ba8b0-00d2-715a-8155-ed55c239abe0
+- Created database migration for events table
+- Files created:
+  - infra/migrations/002_create_events.sql
+- **Learnings for future iterations:**
+  - Use CREATE INDEX IF NOT EXISTS for idempotent index creation
+  - Use REFERENCES for foreign key constraints (e.g., feed_id REFERENCES feeds(id))
+  - Partial unique indexes use WHERE clause (e.g., WHERE source_msg_id IS NOT NULL)
+---
+
+## 2026-01-10 - US-006
+Thread: https://ampcode.com/threads/T-019ba8b0-e1b2-757b-ae77-565967379ddb
+- Created relay-api package with Express scaffold
+- Files created/modified:
+  - packages/relay-api/package.json (with express, pg, typescript dependencies)
+  - packages/relay-api/tsconfig.json (extends root config)
+  - packages/relay-api/src/index.ts (Express app entry point)
+  - packages/relay-api/src/db.ts (Postgres Pool with DATABASE_URL configuration)
+- **Learnings for future iterations:**
+  - Use `import pg from "pg"; const { Pool } = pg;` for ESM module compatibility
+  - DATABASE_URL is checked at startup - process exits if not set
+  - relay-api tsconfig extends root and sets rootDir to src
+---
+
+## 2026-01-10 - US-007
+Thread: https://ampcode.com/threads/T-019ba8b2-3320-741e-8846-7240b2ea3116
+- Added GET /health endpoint to relay-api
+- Files modified:
+  - packages/relay-api/src/index.ts (added /health route)
+- Health endpoint returns 200 OK with `{ status: "ok", database: "connected" }` when DB is reachable
+- Returns 503 with `{ status: "error", database: "unreachable", message: "..." }` when DB fails
+- Uses existing `testConnection()` function from db.ts
+- **Learnings for future iterations:**
+  - Express async route handlers work well with await
+  - Use 503 Service Unavailable for health check failures
+  - testConnection() from db.ts already exists and returns boolean for DB status
+---
+
+## 2026-01-10 - US-008
+Thread: https://ampcode.com/threads/T-019ba8b3-56b8-729d-88d5-366d8d9571d6
+- Created docker-compose.yml for local development
+- Files created:
+  - infra/docker-compose.yml
+- Defines postgres service with volume (pgdata) for data persistence
+- Defines relay-api service that depends on postgres (with healthcheck condition)
+- Uses environment variables from .env file (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
+- Postgres accessible via internal network at postgres:5432
+- **Learnings for future iterations:**
+  - Use `condition: service_healthy` for depends_on to wait for postgres readiness
+  - Use postgres:16-alpine as lightweight postgres image
+  - DATABASE_URL format: postgres://USER:PASSWORD@HOST:PORT/DBNAME
+---
+
+## 2026-01-10 - US-009
+Thread: https://ampcode.com/threads/T-019ba8b4-156f-7251-9f47-e156aa44d37d
+- Created Dockerfile for relay-api
+- Files created:
+  - packages/relay-api/Dockerfile
+- Uses multi-stage build: builder stage compiles TypeScript, final stage runs production
+- Uses node:22-alpine as lightweight Node.js base image
+- Exposes port 3000 (matches PORT default in src/index.ts)
+- **Learnings for future iterations:**
+  - Multi-stage builds reduce final image size (dev deps only in builder stage)
+  - Use `npm install --omit=dev` for production dependencies only
+  - Match exposed port with the application's default PORT
+---
+
+## 2026-01-10 - US-010
+Thread: https://ampcode.com/threads/T-019ba8b5-09cd-774e-a314-c10382803499
+- Created .env.example and migration runner
+- Files created:
+  - .env.example (documents DATABASE_URL and POSTGRES_* variables)
+  - infra/run-migrations.sh (bash script to run migrations via psql)
+- Files modified:
+  - infra/docker-compose.yml (added migrations service)
+- Migrations service runs all *.sql files in order before relay-api starts
+- relay-api depends on migrations with `condition: service_completed_successfully`
+- **Learnings for future iterations:**
+  - Use `condition: service_completed_successfully` for one-shot initialization containers
+  - postgres:16-alpine includes psql client for running migrations
+  - Use $$ in docker-compose command to escape $ for shell variables
+---
+
+## 2026-01-10 - US-011
+Thread: https://ampcode.com/threads/T-019ba8b7-7f9d-7768-9cb0-814d75ba46ef
+- Created README.md with boot instructions
+- Files created:
+  - README.md (explains Switchboard, prerequisites, quick start, architecture, development)
+- Includes step-by-step boot: cp .env.example, docker compose up, curl health check
+- Documents system architecture with directory structure
+- **Learnings for future iterations:**
+  - Check docker-compose.yml for exposed ports when documenting health checks
+  - relay-api runs on port 3000 by default
+---
+
+## 2026-01-10 - US-001 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8bd-ae91-760d-85c0-b7438de22389
+- Implemented POST /feeds endpoint for creating feeds
+- Files modified:
+  - packages/relay-api/src/index.ts (added POST /feeds route)
+- Returns 201 with { id, name, policy_json, created_at } on success
+- Returns 400 if name is missing or not a string
+- policy_json is optional, stored as-is if provided
+- **Learnings for future iterations:**
+  - Use RETURNING clause in INSERT to get created row data including generated id and created_at
+  - Use ?? null for optional JSONB parameters to avoid undefined
+---
+
+## 2026-01-10 - US-002 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8bf-0962-7694-be62-60cd2414121c
+- Implemented GET /feeds/:id endpoint for retrieving feeds
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id route)
+- Returns 200 with { id, name, policy_json, created_at } if feed exists
+- Returns 404 with { error: "Feed not found" } if feed does not exist
+- **Learnings for future iterations:**
+  - Use SELECT with specific columns rather than SELECT * for explicit response shape
+  - Check result.rows.length === 0 for 404 detection
+---
+
+## 2026-01-10 - US-003 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c0-0e19-710c-a7f3-e6a10c173821
+- Implemented POST /feeds/:id/events endpoint with Zod validation
+- Files modified:
+  - packages/relay-api/src/index.ts (added POST /feeds/:id/events route)
+  - packages/relay-api/package.json (added @switchboard/shared and zod dependencies)
+  - infra/migrations/002_create_events.sql (added source_adapter_id column)
+- Validates events against EventSchema from @switchboard/shared
+- Returns 404 if feed not found, 400 if validation fails, 201 with stored event on success
+- Added check that feed_id in body matches URL parameter
+- **Learnings for future iterations:**
+  - Use EventSchema.safeParse() for validation with detailed error reporting
+  - When inserting events, map event.source fields to source_* columns in DB
+  - The events table stores source info in separate columns (source_platform, source_adapter_id, source_msg_id)
+  - Response must reconstruct the nested source object from flat DB columns
+---
+
+## 2026-01-10 - US-004 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c2-5c69-74d9-9cd6-9ddd37fbaad3
+- Implemented event idempotency for POST /feeds/:id/events endpoint
+- Files modified:
+  - packages/relay-api/src/index.ts (added duplicate detection before insert)
+- Checks for existing event by event_id first, returns 200 if found
+- Checks for existing event by (source_platform, source_msg_id) when source_msg_id is not null, returns 200 if found
+- Only inserts and returns 201 if no duplicates found
+- **Learnings for future iterations:**
+  - Check by primary key (event_id) first for efficiency
+  - Only check source-based dedup when source_msg_id is not null (matches partial unique index)
+  - Return 200 for existing events, 201 for newly created
+---
+
+## 2026-01-10 - US-005 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c3-af40-740e-b11d-615bd184b4bf
+- Implemented GET /feeds/:id/stream SSE endpoint
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id/stream route)
+- Returns 404 if feed does not exist
+- Sets SSE headers: Content-Type: text/event-stream, Cache-Control: no-cache, Connection: keep-alive
+- Uses flushHeaders() to send headers immediately
+- Listens for req.on("close") to detect client disconnect
+- **Learnings for future iterations:**
+  - Use res.flushHeaders() after setting SSE headers to send them immediately
+  - SSE requires: text/event-stream content-type, no-cache, keep-alive headers
+  - Use req.on("close") to detect when client disconnects
+---
+
+## 2026-01-10 - US-006 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c4-c26e-7727-9744-e30c13e38514
+- Created in-memory pub/sub module for SSE broadcast
+- Files created:
+  - packages/relay-api/src/pubsub.ts
+- Exports: subscribe(feedId, callback), unsubscribe(feedId, callback), publish(feedId, event)
+- Uses Node.js EventEmitter internally with feedId as event channel
+- Tracks subscribers in a Map<string, Set<Subscriber>> for clean unsubscribe
+- **Learnings for future iterations:**
+  - EventEmitter is built-in to Node.js, no external dependency needed
+  - Use emitter.on() to subscribe and emitter.off() to unsubscribe
+  - Store callbacks in a Set to allow proper cleanup on disconnect
+---
+
+## 2026-01-10 - US-007 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c5-c119-7039-9baf-98e60d16d536
+- Implemented SSE broadcast for ingested events
+- Files modified:
+  - packages/relay-api/src/index.ts (imported pubsub, added subscribe/unsubscribe to SSE endpoint, publish on event insert)
+- SSE endpoint now subscribes to pub/sub for the feed_id and writes events as `data: {...}\n\n`
+- POST /events publishes to pub/sub after successful insert (201 only, not duplicates)
+- Client disconnect triggers unsubscribe to clean up listeners
+- **Learnings for future iterations:**
+  - Only publish to pub/sub for new events (201), not duplicates (200)
+  - SSE messages use `data: ` prefix followed by JSON and double newline
+  - Subscribe callback must be stored as variable for proper unsubscribe on disconnect
+---
+
+## 2026-01-10 - US-008 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c7-898b-7403-a32a-81995c468ec9
+- Implemented GET /feeds/:id/events endpoint with cursor-based pagination
+- Files modified:
+  - packages/relay-api/src/index.ts (added GET /feeds/:id/events route)
+- Returns 404 if feed does not exist
+- Supports limit query param (default 50, max 100)
+- Supports after_ts query param for cursor-based pagination (returns events where ts > after_ts)
+- Events ordered ascending by (ts, id)
+- Response returns array of event objects with reconstructed source nested object
+- **Learnings for future iterations:**
+  - Use ORDER BY ts ASC, id ASC for consistent cursor-based pagination
+  - Use Math.min(parsed, 100) to cap the limit at maximum value
+  - Reuse the same event-to-response mapping pattern from POST /events endpoint
+---
+
+## 2026-01-10 - US-009 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c8-97cb-756d-b137-2179d1b42901
+- Created integration test for full ingest-to-SSE flow
+- Files created:
+  - packages/relay-api/src/__tests__/integration.test.ts
+  - packages/relay-api/vitest.config.ts
+  - packages/shared/tsconfig.json
+- Files modified:
+  - packages/relay-api/package.json (added test scripts, vitest, supertest)
+  - packages/shared/package.json (added build script, ESM exports, TypeScript compilation)
+  - packages/shared/index.ts (fixed ESM import path with .js extension)
+  - infra/docker-compose.yml (exposed postgres port 5432 for local development)
+- Test validates complete flow: create feed → connect SSE → POST event → receive via SSE → verify persistence
+- **Learnings for future iterations:**
+  - Shared package requires TypeScript compilation before relay-api can run
+  - Use `.js` extension in TypeScript imports when using ESM module resolution
+  - Vitest works well for ESM-based TypeScript projects
+  - Integration tests should run against live server (requires docker compose up or local run)
+  - Use http module directly for SSE client in tests (simpler than EventSource for server-side)
+---
+
+## 2026-01-10 - US-001 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba985-8eb8-703b-9659-a3c2b21caf6f
+- Created CRP v0.1 spec document scaffold
+- Files modified:
+  - docs/crp/crp-v0.1.md (replaced placeholder with full scaffold)
+- Document includes title "Context Repo Protocol v0.1" and sections: Purpose, Version, Directory Layout, File Naming, Event Format, Policy
+- Purpose section explains CRP is the canonical structure for git-based context repos
+- **Learnings for future iterations:**
+  - Section placeholders with "_To be documented in subsequent user stories._" work well for scaffolding
+---
+
+## 2026-01-10 - US-002 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba986-c37b-724f-b483-6e68925987c7
+- Documented Directory Layout section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added events/, snapshots/, policy/, .crp/ directory documentation)
+- Each directory has description of its purpose
+- **Learnings for future iterations:**
+  - Use subsections (###) for individual directory documentation within the Directory Layout section
+  - Markdown documentation changes don't affect typecheck
+---
+
+## 2026-01-10 - US-003 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba987-9e55-774a-a97a-82a0a8c56659
+- Documented File Naming section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added file naming conventions)
+- Documented event files path: events/{feed_id}/{YYYY-MM-DD}/{event_id}.json
+- Documented policy file: policy/policy.json
+- Documented manifest file: .crp/manifest.json
+- Added snapshot naming placeholder for future specification
+- **Learnings for future iterations:**
+  - Markdown documentation changes don't require code changes
+  - Typecheck passes trivially for documentation-only stories
+---
+
+## 2026-01-10 - US-004 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba988-91f4-767e-ae26-d25fe36094c7
+- Documented Event Format section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added Event Format section with required/optional fields, source object, and example)
+- Event format documents JSON structure with required fields: event_id, feed_id, type, author_identity_id, source, ts, payload
+- Documents refs as optional
+- Includes source object structure: platform, adapter_id, source_msg_id
+- Includes example event JSON
+- **Learnings for future iterations:**
+  - Documentation aligns with EventSchema in packages/shared/schema/event.ts
+  - Use markdown tables for clean field documentation
+---
+
+## 2026-01-10 - US-005 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba989-a1cc-73c9-9fdf-5a8b8cdb9613
+- Documented Policy section in CRP v0.1 spec
+- Files modified:
+  - docs/crp/crp-v0.1.md (added Policy section with structure, members, permissions, example, enforcement note)
+- Policy section documents policy/policy.json structure with members array and permissions object
+- Notes that policy enforcement is reserved for future specification
+- **Learnings for future iterations:**
+  - Documentation-only stories are straightforward - just update the markdown file
+  - Use "reserved for future specification" language for features not yet implemented
+---
+
+## 2026-01-10 - US-006 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98a-9736-741e-83c2-a29ff8a7c37c
+- Created crp_init script scaffold
+- Files created:
+  - scripts/crp_init.ts
+- Script accepts target directory as first argument
+- Prints usage if no path argument provided
+- Executable via `npx ts-node scripts/crp_init.ts <path>`
+- **Learnings for future iterations:**
+  - Use process.argv.slice(2) to get command-line arguments in Node.js
+  - Use process.exit(1) to indicate error/usage scenario
+---
+
+## 2026-01-10 - US-007 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98b-a111-759d-99b4-e0340f26768a
+- Implemented directory structure creation in crp_init
+- Files modified:
+  - scripts/crp_init.ts (added fs/path imports, directory and .gitkeep creation)
+- Creates events/, snapshots/, policy/, .crp/ directories
+- Creates .gitkeep in events/ and snapshots/ for git tracking
+- **Learnings for future iterations:**
+  - Use fs.mkdirSync with { recursive: true } for idempotent directory creation
+  - .gitkeep files are empty files that allow git to track otherwise empty directories
+---
+
+## 2026-01-10 - US-008 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98c-9cf0-72cd-addc-79ed9927d045
+- Added README.md creation to crp_init script
+- Files modified:
+  - scripts/crp_init.ts (added readmeContent and README.md file creation)
+- README explains this is a Context Repo following CRP v0.1
+- README documents directory layout in a markdown table
+- **Learnings for future iterations:**
+  - Use template literals for multi-line file content in TypeScript
+  - Markdown tables work well for documenting directory structures
+---
+
+## 2026-01-10 - US-009 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98d-9047-77cf-9ec5-50e837fa6a57
+- Added policy/policy.json creation to crp_init script
+- Files modified:
+  - scripts/crp_init.ts (added policyContent object and writeFileSync for policy.json)
+- Policy JSON has members: [] array and permissions: {} object
+- File is valid JSON formatted with 2-space indentation
+- **Learnings for future iterations:**
+  - Use JSON.stringify(obj, null, 2) for pretty-printed JSON output
+  - policy/ directory already exists from earlier directory creation step
+---
+
+## 2026-01-10 - US-010 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98e-6c96-738c-b118-e485b26707e8
+- Added .crp/manifest.json creation to crp_init script
+- Files modified:
+  - scripts/crp_init.ts (added manifestContent object and writeFileSync for manifest.json)
+- Manifest includes version: "0.1" and created_at with ISO-8601 timestamp from new Date().toISOString()
+- File is valid JSON formatted with 2-space indentation
+- **Learnings for future iterations:**
+  - Use new Date().toISOString() for ISO-8601 formatted timestamps
+  - .crp/ directory already exists from earlier directory creation step
+---
+
+## 2026-01-10 - US-011 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98f-6926-7267-87b7-7f25bb088644
+- Added optional --git flag to crp_init script
+- Files modified:
+  - scripts/crp_init.ts (added execSync import, --git flag parsing, git init/add/commit logic)
+- When --git flag passed, runs git init, git add -A, and git commit with "Initialize context repo"
+- Without --git flag, does not touch git
+- **Learnings for future iterations:**
+  - Use execSync from child_process for running shell commands synchronously
+  - Use { cwd: path, stdio: "inherit" } to run commands in a specific directory and show output
+  - Filter positional args from flags with .filter() to support flags in any position
+---
+
+## 2026-01-10 - US-001 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba993-1847-7245-9803-f36353fe4d57
+- Created mirror-worker package scaffold
+- Files created:
+  - packages/mirror-worker/package.json (with eventsource and typescript dependencies)
+  - packages/mirror-worker/tsconfig.json (extends root config)
+  - packages/mirror-worker/src/index.ts (entry point placeholder)
+- **Learnings for future iterations:**
+  - eventsource v2.x provides ESM compatible SSE client for Node.js
+  - @types/eventsource provides TypeScript type definitions
+---
+
+## 2026-01-10 - US-002 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba994-5127-7111-bd27-69cc19f6c3f2
+- Created configuration module via environment variables
+- Files created:
+  - packages/mirror-worker/src/config.ts (getConfig() function with Config interface)
+- Required env vars: RELAY_URL, FEED_IDS, CONTEXT_REPO_PATH
+- Optional env vars: COMMIT_BATCH_SIZE (default 10), COMMIT_BATCH_TIMEOUT_MS (default 5000)
+- Throws clear error messages for missing required vars
+- **Learnings for future iterations:**
+  - FEED_IDS is comma-separated and parsed with split/trim/filter
+  - parseInt with radix 10 for numeric env vars
+---
+
+## 2026-01-10 - US-003 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba995-3a1f-707d-9f41-8d9be3829cfa
+- Created SSE client module for connecting to relay feeds
+- Files created:
+  - packages/mirror-worker/src/sse.ts (connectToFeed function with EventSource)
+- Connects to {RELAY_URL}/feeds/{feed_id}/stream endpoint
+- Parses incoming SSE data messages as JSON and calls onEvent callback
+- Logs successful connection and errors to stdout
+- **Learnings for future iterations:**
+  - eventsource v2.x works with ES modules in Node.js
+  - Use es.onopen for connection success, es.onmessage for data, es.onerror for errors
+  - Return the EventSource instance to allow caller to manage lifecycle
+---
+
+## 2026-01-10 - US-004 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba996-49d3-71ac-ade7-ce4d7ffb3fa1
+- Implemented SSE auto-reconnect with exponential backoff
+- Files modified:
+  - packages/mirror-worker/src/sse.ts (added reconnection logic)
+- On connection error, closes EventSource and schedules reconnect with backoff
+- Backoff starts at 1s, doubles each retry up to max 30s
+- Backoff resets to 1s on successful connection (in onopen handler)
+- Logs reconnection attempts with delay to stdout
+- **Learnings for future iterations:**
+  - Use es.close() before reconnecting to clean up the old connection
+  - Store backoffMs in closure to persist across reconnect attempts
+  - Reset backoff in onopen, not after successful connect() call
+---
+
+## 2026-01-10 - US-005 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba997-5745-748a-b88e-ffff9d0a14a4
+- Created initRepo() function in src/repo.ts
+- Files created:
+  - packages/mirror-worker/src/repo.ts
+- initRepo() creates repo directory if it doesn't exist
+- Runs git init if .git folder doesn't exist
+- Creates CRP directory structure: events/, snapshots/, policy/, .crp/
+- Creates .crp/manifest.json with version "0.1" and created_at timestamp
+- **Learnings for future iterations:**
+  - Pattern similar to scripts/crp_init.ts but as a reusable function
+  - Use fs.existsSync() to check before creating for idempotency
+  - execSync with stdio: "inherit" shows git output to user
+---
+
+## 2026-01-10 - US-006 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba998-6988-768e-9118-bb2faea986da
+- Implemented writeEvent(repoPath, event) function in src/repo.ts
+- Files modified:
+  - packages/mirror-worker/src/repo.ts (added writeEvent function with Event import)
+- Extracts date from event.ts (ISO-8601) using substring(0, 10) for YYYY-MM-DD
+- Creates directory structure events/{feed_id}/{YYYY-MM-DD}/ with recursive mkdir
+- Writes event JSON with 2-space indentation
+- **Learnings for future iterations:**
+  - Import Event type from @switchboard/shared for type safety
+  - Use event.ts.substring(0, 10) to extract YYYY-MM-DD from ISO-8601 timestamp
+---
+
+## 2026-01-10 - US-007 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba999-8c5b-74d6-8308-4abe6b4c146c
+- Created Committer class in src/committer.ts
+- Files created:
+  - packages/mirror-worker/src/committer.ts
+- Committer constructor accepts repoPath, batchSize, and timeoutMs
+- addEvent() queues event and triggers commit if batch size reached, otherwise schedules timeout
+- Timeout schedules commit after timeoutMs if pending events exist
+- commit() runs git add -A then git commit with "Mirror: add {n} event(s)" message
+- flush() method added for graceful shutdown (commits any pending events)
+- **Learnings for future iterations:**
+  - Use NodeJS.Timeout type for timeout handle
+  - Clear timeout before committing to prevent duplicate commits
+  - flush() method useful for graceful shutdown scenarios
+---
+
+## 2026-01-10 - US-008 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba99a-abc3-778c-9847-a8a941312926
+- Wired up main entry point in src/index.ts
+- Files modified:
+  - packages/mirror-worker/src/index.ts (implemented main function)
+- Reads config via getConfig()
+- Calls initRepo() to ensure repo is initialized
+- Creates Committer instance with config batch settings
+- Connects to SSE for each feed in FEED_IDS
+- On event received, calls writeEvent() then committer.addEvent()
+- Logs startup message with relay URL and feed count
+- **Learnings for future iterations:**
+  - Use .js extension in ESM imports even for TypeScript files
+  - Cast FeedEvent to Event type since they share same structure
+---
+
+## 2026-01-10 - US-009 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba99b-a2e5-75e8-9387-e042cc074f5b
+- Implemented graceful shutdown for mirror-worker
+- Files modified:
+  - packages/mirror-worker/src/sse.ts (added SSEConnection interface with close() method)
+  - packages/mirror-worker/src/index.ts (added SIGINT/SIGTERM handlers, shutdown function)
+- SSE connections now return SSEConnection object with close() that stops reconnection and closes EventSource
+- Shutdown function: closes all SSE connections, calls committer.flush(), logs shutdown message, exits with code 0
+- **Learnings for future iterations:**
+  - Use a `closed` flag to prevent reconnection attempts after shutdown
+  - Clear pending reconnect timeouts when closing SSE connections
+  - Signal handlers can use synchronous functions when operations are synchronous (flush uses execSync)
+---
+
+## 2026-01-10 - US-010 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba99d-43cf-77bc-b810-c2bf397d1163
+- Created integration test for mirror worker flow
+- Files created:
+  - packages/mirror-worker/src/__tests__/integration.test.ts
+- Files modified:
+  - packages/mirror-worker/package.json (added vitest, @switchboard/shared, test scripts)
+- Test workflow:
+  1. Creates temp directory for CONTEXT_REPO_PATH
+  2. Creates feed via POST /feeds
+  3. Initializes git repo with user config in temp dir
+  4. Starts mirror process with configured environment
+  5. Posts 3 events to relay API
+  6. Verifies 3 event files exist in correct CRP paths (events/{feed_id}/{YYYY-MM-DD}/{event_id}.json)
+  7. Verifies git log contains "Mirror:" commit message
+- **Learnings for future iterations:**
+  - Integration tests require live relay API server (docker compose up)
+  - Temp directories need git user config (user.email, user.name) before commits work
+  - Use fs.mkdtempSync with os.tmpdir() for temp directories
+  - Mirror process spawned with spawn(), not execSync, to run in background during test
+---

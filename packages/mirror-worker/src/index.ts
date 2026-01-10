@@ -1,4 +1,4 @@
-import { getConfig } from "./config.js";
+import { getConfig, redactPat } from "./config.js";
 import { initRepo, writeEvent } from "./repo.js";
 import { Committer } from "./committer.js";
 import { connectToFeed, SSEConnection } from "./sse.js";
@@ -10,6 +10,15 @@ async function main(): Promise<void> {
   console.log(`[Mirror] Starting mirror-worker`);
   console.log(`[Mirror] Relay URL: ${config.relayUrl}`);
   console.log(`[Mirror] Feed count: ${config.feedIds.length}`);
+
+  if (config.github) {
+    console.log(`[Mirror] GitHub mode enabled`);
+    console.log(`[Mirror] GitHub PAT: ${redactPat(config.github.pat)}`);
+    console.log(`[Mirror] GitHub Repo URL: ${config.github.repoUrl}`);
+    console.log(`[Mirror] GitHub Branch: ${config.github.branch}`);
+  } else {
+    console.log(`[Mirror] Local-only mode (GitHub push disabled)`);
+  }
 
   await initRepo(config.contextRepoPath);
 

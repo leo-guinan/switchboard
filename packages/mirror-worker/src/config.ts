@@ -1,9 +1,16 @@
+export interface GitHubConfig {
+  pat: string;
+  repoUrl: string;
+  branch: string;
+}
+
 export interface Config {
   relayUrl: string;
   feedIds: string[];
   contextRepoPath: string;
   commitBatchSize: number;
   commitBatchTimeoutMs: number;
+  github?: GitHubConfig;
 }
 
 export function getConfig(): Config {
@@ -34,11 +41,32 @@ export function getConfig(): Config {
     ? parseInt(process.env.COMMIT_BATCH_TIMEOUT_MS, 10)
     : 5000;
 
+  const githubPat = process.env.GITHUB_PAT;
+  const githubRepoUrl = process.env.GITHUB_REPO_URL;
+  const githubBranch = process.env.GITHUB_BRANCH || "main";
+
+  let github: GitHubConfig | undefined;
+  if (githubPat && githubRepoUrl) {
+    github = {
+      pat: githubPat,
+      repoUrl: githubRepoUrl,
+      branch: githubBranch,
+    };
+  }
+
   return {
     relayUrl,
     feedIds,
     contextRepoPath,
     commitBatchSize,
     commitBatchTimeoutMs,
+    github,
   };
+}
+
+export function redactPat(pat: string): string {
+  if (pat.length <= 4) {
+    return "****";
+  }
+  return pat.substring(0, 4) + "***";
 }
