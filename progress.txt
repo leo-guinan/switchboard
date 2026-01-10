@@ -608,3 +608,15 @@ Thread: https://ampcode.com/threads/T-019ba9b9-0dd9-775a-8457-8dc9f5666c8f
   - execSync with stdio: ["pipe", "pipe", "pipe"] captures errors without logging to console
   - Check for null after try/catch to distinguish between missing remote and existing one
 ---
+
+## 2026-01-10 - US-003 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9ba-45a1-75da-876a-738a9767817d
+- Implemented fetchAndRebase(repoPath, branch) function in src/git.ts
+- Runs git fetch origin {branch} first
+- Runs git rebase origin/{branch} to rebase local commits
+- Returns true if successful, false if rebase fails
+- If rebase fails, runs git rebase --abort and logs error
+- **Learnings for future iterations:**
+  - Use stdio: ["pipe", "pipe", "pipe"] to suppress git output and capture errors
+  - Always abort failed rebase to clean up git state
+---
