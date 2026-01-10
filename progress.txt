@@ -942,3 +942,22 @@ Thread: https://ampcode.com/threads/T-019ba9ff-4c71-778b-b74d-4c161dde7c18
   - Need vite-env.d.ts with `/// <reference types="vite/client" />` for import.meta.env to work with TypeScript
   - dev-browser skill not available in this environment, browser verification skipped
 ---
+
+## 2026-01-10 - US-005 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa01-6418-76dd-9de0-76174ba7d237
+- Created useEventStream hook for SSE event subscription
+- Files created:
+  - packages/viewer-web/src/hooks/useEventStream.ts
+- Hook features:
+  - Exports useEventStream(feedId) hook
+  - Connects to VITE_RELAY_URL/feeds/{feedId}/stream via EventSource
+  - Returns { events, isConnected, error }
+  - events array holds last 100 events (newest first)
+  - Handles connection errors and sets error state
+  - Cleans up EventSource on unmount or feedId change
+- **Learnings for future iterations:**
+  - Use useRef to store EventSource instance for cleanup
+  - Use useCallback for cleanup function to avoid recreation
+  - EventSource onopen/onerror/onmessage handlers manage connection state
+  - Limit events array with slice(0, MAX_EVENTS) for memory management
+---
