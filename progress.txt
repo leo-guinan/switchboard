@@ -922,3 +922,23 @@ Thread: https://ampcode.com/threads/T-019ba9e8-306b-722f-aa90-ee353451e490
   - PostCSS config required for Tailwind processing
   - Exclude vite.config.ts from root typecheck to avoid version conflicts
 ---
+
+## 2026-01-10 - US-004 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019ba9ff-4c71-778b-b74d-4c161dde7c18
+- Created FeedList component for displaying available feeds
+- Files created:
+  - packages/viewer-web/src/components/FeedList.tsx
+  - packages/viewer-web/src/vite-env.d.ts (Vite client types for import.meta.env)
+- Files modified:
+  - packages/viewer-web/src/App.tsx (integrated FeedList component)
+- Component features:
+  - Fetches feeds from VITE_RELAY_URL/feeds on mount
+  - Displays each feed as clickable button with name
+  - Shows "Loading..." while fetching
+  - Shows "No feeds available" if empty array
+  - Clicking feed calls onSelectFeed prop with feed_id
+  - Selected feed has blue highlight (bg-blue-600)
+- **Learnings for future iterations:**
+  - Need vite-env.d.ts with `/// <reference types="vite/client" />` for import.meta.env to work with TypeScript
+  - dev-browser skill not available in this environment, browser verification skipped
+---
