@@ -687,3 +687,15 @@ Thread: https://ampcode.com/threads/T-019ba9c0-0065-7143-8439-1436929ea0eb
   - Use setInterval for periodic tasks, clearInterval to stop them
   - Define interval handlers as arrow functions to capture closure variables
 ---
+
+## 2026-01-10 - US-009 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9c1-7215-707b-b304-6d9d68615fa0
+- Wired up GitHub config in main entry point
+- Files modified:
+  - packages/mirror-worker/src/index.ts (imported configureRemote, call it on startup, pass githubConfig to Committer)
+- Main now calls configureRemote(repoPath, repoUrl, pat) after initRepo() when GitHub config is present
+- githubConfig passed to Committer constructor to enable automatic push after commits
+- **Learnings for future iterations:**
+  - GitHub mode was already logging at startup, just needed to wire up configureRemote and pass to Committer
+  - configureRemote must be called after initRepo() to ensure git repo exists
+---
