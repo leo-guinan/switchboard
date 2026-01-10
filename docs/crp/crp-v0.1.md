@@ -10,7 +10,23 @@ v0.1
 
 ## Directory Layout
 
-_To be documented in subsequent user stories._
+A CRP-compliant repository MUST contain the following directories:
+
+### `events/`
+
+Stores event files organized by feed and date. Events represent discrete actions, messages, or state changes captured from various sources. This is the primary data store for the context repo.
+
+### `snapshots/`
+
+Stores point-in-time state snapshots. Snapshots capture the aggregated state at a specific moment, useful for fast reconstruction without replaying all events.
+
+### `policy/`
+
+Stores access control policies. Contains policy files that define who can read, write, or administer the context repo.
+
+### `.crp/`
+
+Stores repo metadata. Contains internal CRP files such as the manifest, version info, and other repo-level configuration.
 
 ## File Naming
 
