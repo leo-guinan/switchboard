@@ -620,3 +620,15 @@ Thread: https://ampcode.com/threads/T-019ba9ba-45a1-75da-876a-738a9767817d
   - Use stdio: ["pipe", "pipe", "pipe"] to suppress git output and capture errors
   - Always abort failed rebase to clean up git state
 ---
+
+## 2026-01-10 - US-004 (Milestone H4)
+Thread: https://ampcode.com/threads/T-019ba9bb-240b-77d8-8452-ebc0880eb309
+- Implemented checkAppendOnly(repoPath, branch) function in src/git.ts
+- Runs git diff --name-status origin/{branch}..HEAD
+- Parses output lines for files in events/ directory
+- Returns true if all event file changes are A (added)
+- Returns false and logs error if any M (modified) or D (deleted) found
+- **Learnings for future iterations:**
+  - git diff --name-status returns tab-separated "STATUS\tFILENAME" format
+  - Use line.split("\t") to parse status and filepath
+---
