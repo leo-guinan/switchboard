@@ -997,3 +997,19 @@ Thread: https://ampcode.com/threads/T-019baa04-76ea-703b-bdd6-811c732fba6f
   - Use pre/code blocks for JSON formatting
   - Tailwind max-h-[value] with overflow-y-auto for scrollable containers
 ---
+
+## 2026-01-10 - US-008 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa06-1650-757d-97a3-b9a633b3a910
+- Created ViewToggle component for switching between card and raw JSON views
+- Files created:
+  - packages/viewer-web/src/components/ViewToggle.tsx
+- Component features:
+  - Two buttons/tabs: "Cards" and "Raw JSON"
+  - Active view has blue bg (bg-blue-600) with white text and border
+  - Inactive view has white bg with gray border and hover effect
+  - Calls onViewChange prop with 'cards' or 'raw'
+  - Exports ViewMode type for use in parent components
+- **Learnings for future iterations:**
+  - Export ViewMode type from component for parent component type safety
+  - Use consistent blue-600 highlight color across components
+---
