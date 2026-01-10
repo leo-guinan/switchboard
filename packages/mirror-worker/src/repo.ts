@@ -1,6 +1,24 @@
 import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
+import type { Event } from "@switchboard/shared";
+
+export async function writeEvent(repoPath: string, event: Event): Promise<void> {
+  // Extract date from event.ts (ISO-8601 format)
+  const dateStr = event.ts.substring(0, 10); // YYYY-MM-DD
+  
+  // Build path: events/{feed_id}/{YYYY-MM-DD}/{event_id}.json
+  const eventDir = path.join(repoPath, "events", event.feed_id, dateStr);
+  
+  // Create directories if they don't exist
+  if (!fs.existsSync(eventDir)) {
+    fs.mkdirSync(eventDir, { recursive: true });
+  }
+  
+  // Write event file with pretty-printed JSON (2-space indent)
+  const eventPath = path.join(eventDir, `${event.event_id}.json`);
+  fs.writeFileSync(eventPath, JSON.stringify(event, null, 2) + "\n");
+}
 
 export async function initRepo(repoPath: string): Promise<void> {
   // Create repo directory if it doesn't exist
