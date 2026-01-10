@@ -100,3 +100,18 @@ Thread: https://ampcode.com/threads/T-019ba8b2-3320-741e-8846-7240b2ea3116
   - Use 503 Service Unavailable for health check failures
   - testConnection() from db.ts already exists and returns boolean for DB status
 ---
+
+## 2026-01-10 - US-008
+Thread: https://ampcode.com/threads/T-019ba8b3-56b8-729d-88d5-366d8d9571d6
+- Created docker-compose.yml for local development
+- Files created:
+  - infra/docker-compose.yml
+- Defines postgres service with volume (pgdata) for data persistence
+- Defines relay-api service that depends on postgres (with healthcheck condition)
+- Uses environment variables from .env file (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
+- Postgres accessible via internal network at postgres:5432
+- **Learnings for future iterations:**
+  - Use `condition: service_healthy` for depends_on to wait for postgres readiness
+  - Use postgres:16-alpine as lightweight postgres image
+  - DATABASE_URL format: postgres://USER:PASSWORD@HOST:PORT/DBNAME
+---
