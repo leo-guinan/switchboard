@@ -243,3 +243,17 @@ Thread: https://ampcode.com/threads/T-019ba8c4-c26e-7727-9744-e30c13e38514
   - Use emitter.on() to subscribe and emitter.off() to unsubscribe
   - Store callbacks in a Set to allow proper cleanup on disconnect
 ---
+
+## 2026-01-10 - US-007 (Milestone H1)
+Thread: https://ampcode.com/threads/T-019ba8c5-c119-7039-9baf-98e60d16d536
+- Implemented SSE broadcast for ingested events
+- Files modified:
+  - packages/relay-api/src/index.ts (imported pubsub, added subscribe/unsubscribe to SSE endpoint, publish on event insert)
+- SSE endpoint now subscribes to pub/sub for the feed_id and writes events as `data: {...}\n\n`
+- POST /events publishes to pub/sub after successful insert (201 only, not duplicates)
+- Client disconnect triggers unsubscribe to clean up listeners
+- **Learnings for future iterations:**
+  - Only publish to pub/sub for new events (201), not duplicates (200)
+  - SSE messages use `data: ` prefix followed by JSON and double newline
+  - Subscribe callback must be stored as variable for proper unsubscribe on disconnect
+---
