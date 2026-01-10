@@ -2,6 +2,7 @@
 - Use `npx tsc --noEmit` for typecheck
 - Monorepo uses npm workspaces
 - At least one .ts file must exist for typecheck to pass
+- Use `condition: service_completed_successfully` for one-shot migration containers in docker-compose
 
 ---
 
@@ -128,4 +129,20 @@ Thread: https://ampcode.com/threads/T-019ba8b4-156f-7251-9f47-e156aa44d37d
   - Multi-stage builds reduce final image size (dev deps only in builder stage)
   - Use `npm install --omit=dev` for production dependencies only
   - Match exposed port with the application's default PORT
+---
+
+## 2026-01-10 - US-010
+Thread: https://ampcode.com/threads/T-019ba8b5-09cd-774e-a314-c10382803499
+- Created .env.example and migration runner
+- Files created:
+  - .env.example (documents DATABASE_URL and POSTGRES_* variables)
+  - infra/run-migrations.sh (bash script to run migrations via psql)
+- Files modified:
+  - infra/docker-compose.yml (added migrations service)
+- Migrations service runs all *.sql files in order before relay-api starts
+- relay-api depends on migrations with `condition: service_completed_successfully`
+- **Learnings for future iterations:**
+  - Use `condition: service_completed_successfully` for one-shot initialization containers
+  - postgres:16-alpine includes psql client for running migrations
+  - Use $$ in docker-compose command to escape $ for shell variables
 ---
