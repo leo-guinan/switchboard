@@ -472,3 +472,18 @@ Thread: https://ampcode.com/threads/T-019ba995-3a1f-707d-9f41-8d9be3829cfa
   - Use es.onopen for connection success, es.onmessage for data, es.onerror for errors
   - Return the EventSource instance to allow caller to manage lifecycle
 ---
+
+## 2026-01-10 - US-004 (Milestone H3)
+Thread: https://ampcode.com/threads/T-019ba996-49d3-71ac-ade7-ce4d7ffb3fa1
+- Implemented SSE auto-reconnect with exponential backoff
+- Files modified:
+  - packages/mirror-worker/src/sse.ts (added reconnection logic)
+- On connection error, closes EventSource and schedules reconnect with backoff
+- Backoff starts at 1s, doubles each retry up to max 30s
+- Backoff resets to 1s on successful connection (in onopen handler)
+- Logs reconnection attempts with delay to stdout
+- **Learnings for future iterations:**
+  - Use es.close() before reconnecting to clean up the old connection
+  - Store backoffMs in closure to persist across reconnect attempts
+  - Reset backoff in onopen, not after successful connect() call
+---
