@@ -408,3 +408,15 @@ Thread: https://ampcode.com/threads/T-019ba98d-9047-77cf-9ec5-50e837fa6a57
   - Use JSON.stringify(obj, null, 2) for pretty-printed JSON output
   - policy/ directory already exists from earlier directory creation step
 ---
+
+## 2026-01-10 - US-010 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba98e-6c96-738c-b118-e485b26707e8
+- Added .crp/manifest.json creation to crp_init script
+- Files modified:
+  - scripts/crp_init.ts (added manifestContent object and writeFileSync for manifest.json)
+- Manifest includes version: "0.1" and created_at with ISO-8601 timestamp from new Date().toISOString()
+- File is valid JSON formatted with 2-space indentation
+- **Learnings for future iterations:**
+  - Use new Date().toISOString() for ISO-8601 formatted timestamps
+  - .crp/ directory already exists from earlier directory creation step
+---
