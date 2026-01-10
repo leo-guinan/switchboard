@@ -15,6 +15,21 @@ services:
       timeout: 5s
       retries: 5
 
+  migrations:
+    image: postgres:16-alpine
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - ./migrations:/migrations:ro
+    command: >
+      sh -c "for f in /migrations/*.sql; do
+        echo \"Applying: $$(basename $$f)\";
+        psql \"$$DATABASE_URL\" -f \"$$f\";
+      done && echo 'Migrations complete.'"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   relay-api:
     build:
       context: ../packages/relay-api
@@ -27,6 +42,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:
