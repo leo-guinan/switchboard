@@ -59,4 +59,13 @@ const policyPath = path.join(targetDir, "policy", "policy.json");
 fs.writeFileSync(policyPath, JSON.stringify(policyContent, null, 2) + "\n");
 console.log("  Created policy/policy.json");
 
+const manifestContent = {
+  version: "0.1",
+  created_at: new Date().toISOString(),
+};
+
+const manifestPath = path.join(targetDir, ".crp", "manifest.json");
+fs.writeFileSync(manifestPath, JSON.stringify(manifestContent, null, 2) + "\n");
+console.log("  Created .crp/manifest.json");
+
 console.log("Done.");
