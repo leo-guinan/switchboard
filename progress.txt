@@ -297,3 +297,14 @@ Thread: https://ampcode.com/threads/T-019ba8c8-97cb-756d-b137-2179d1b42901
   - Integration tests should run against live server (requires docker compose up or local run)
   - Use http module directly for SSE client in tests (simpler than EventSource for server-side)
 ---
+
+## 2026-01-10 - US-001 (Milestone H2)
+Thread: https://ampcode.com/threads/T-019ba985-8eb8-703b-9659-a3c2b21caf6f
+- Created CRP v0.1 spec document scaffold
+- Files modified:
+  - docs/crp/crp-v0.1.md (replaced placeholder with full scaffold)
+- Document includes title "Context Repo Protocol v0.1" and sections: Purpose, Version, Directory Layout, File Naming, Event Format, Policy
+- Purpose section explains CRP is the canonical structure for git-based context repos
+- **Learnings for future iterations:**
+  - Section placeholders with "_To be documented in subsequent user stories._" work well for scaffolding
+---
