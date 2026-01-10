@@ -1051,3 +1051,20 @@ Thread: https://ampcode.com/threads/T-019baa09-2835-747b-bc7b-2804636f82c1
   - Use setInterval with cleanup in useEffect for polling
   - Distinguish between loading (null health, not offline) and offline (fetch failed) states
 ---
+
+## 2026-01-10 - US-011 (Milestone H6)
+Thread: https://ampcode.com/threads/T-019baa0a-af0b-76af-8165-202298b44f82
+- Created main App layout combining all viewer components
+- Files modified:
+  - packages/viewer-web/src/App.tsx (complete layout redesign)
+- Layout features:
+  - Header with "Switchboard Viewer" title
+  - Sidebar contains FeedList and MirrorStatus components
+  - Main area contains ViewToggle and EventList
+  - Shows "Select a feed" message when no feed selected
+  - Uses Tailwind flex layout
+  - Responsive: sidebar stacks above main on small screens (md:flex-row)
+- **Learnings for future iterations:**
+  - Use flex-col for mobile-first, md:flex-row for desktop sidebar layout
+  - Import ViewMode type from ViewToggle component for state typing
+---
