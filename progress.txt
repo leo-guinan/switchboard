@@ -115,3 +115,17 @@ Thread: https://ampcode.com/threads/T-019ba8b3-56b8-729d-88d5-366d8d9571d6
   - Use postgres:16-alpine as lightweight postgres image
   - DATABASE_URL format: postgres://USER:PASSWORD@HOST:PORT/DBNAME
 ---
+
+## 2026-01-10 - US-009
+Thread: https://ampcode.com/threads/T-019ba8b4-156f-7251-9f47-e156aa44d37d
+- Created Dockerfile for relay-api
+- Files created:
+  - packages/relay-api/Dockerfile
+- Uses multi-stage build: builder stage compiles TypeScript, final stage runs production
+- Uses node:22-alpine as lightweight Node.js base image
+- Exposes port 3000 (matches PORT default in src/index.ts)
+- **Learnings for future iterations:**
+  - Multi-stage builds reduce final image size (dev deps only in builder stage)
+  - Use `npm install --omit=dev` for production dependencies only
+  - Match exposed port with the application's default PORT
+---
