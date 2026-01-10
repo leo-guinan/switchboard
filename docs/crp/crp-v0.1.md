@@ -72,7 +72,59 @@ Snapshot naming conventions are reserved for future specification. Implementatio
 
 ## Event Format
 
-_To be documented in subsequent user stories._
+Event files are JSON documents. Each event file MUST contain a single JSON object with the following structure.
+
+### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `event_id` | string (UUID) | Unique identifier for this event |
+| `feed_id` | string (UUID) | The feed this event belongs to |
+| `type` | string | The event type (e.g., "message", "action", "state_change") |
+| `author_identity_id` | string | Identifier of the entity that authored this event |
+| `source` | object | Origin metadata for this event (see Source Object below) |
+| `ts` | string (ISO-8601) | Timestamp when the event occurred |
+| `payload` | object | Event-specific data; structure varies by event type |
+
+### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `refs` | object | References to related events or external resources |
+
+### Source Object
+
+The `source` field describes where the event originated:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `platform` | string | The platform or system where the event originated (e.g., "slack", "github") |
+| `adapter_id` | string | Identifier of the adapter that captured this event |
+| `source_msg_id` | string or null | Original message ID from the source platform, if applicable |
+
+### Example Event
+
+```json
+{
+  "event_id": "f9e8d7c6-b5a4-3210-fedc-ba0987654321",
+  "feed_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "type": "message",
+  "author_identity_id": "user-12345",
+  "source": {
+    "platform": "slack",
+    "adapter_id": "slack-adapter-001",
+    "source_msg_id": "1704912000.123456"
+  },
+  "ts": "2026-01-10T14:30:00.000Z",
+  "payload": {
+    "text": "Hello, world!",
+    "channel": "general"
+  },
+  "refs": {
+    "parent_event_id": "abc123"
+  }
+}
+```
 
 ## Policy
 
