@@ -90,6 +90,28 @@ npm run start --workspace=@switchboard/discord-adapter
 
 Slash commands are registered during startup, so restart the adapter whenever you change `/task`.
 
+## Mastra Bridge
+
+`packages/adapters/mastra-bridge` is a lightweight SDK and runtime helper for plugging Mastra agents into a switchboard feed:
+
+- `createSwitchboardTools(relayUrl, feedId, options?)` exposes `publishEvent`, `getRecentEvents`, and `claimTask`, so agents read context, claim ownership, and write canonical events with a consistent source identity.
+- `createFeedSubscriber(relayUrl, feedId)` wires a SSE stream to feed agent workers.
+- `runAgentWorker({ agent, tools, subscriber, routing, claimStrategy })` ties the agent, routing policy, claim logic, and the feed subscription together.
+
+Use `claimTask` before generating outputs so only the current agent reacts to the task while others skip it. The bridge package ships as a Docker service (`mastra-bridge`) in `infra/docker-compose.yml`, or you can run it directly:
+
+```bash
+npm run build --workspace=@switchboard/mastra-bridge
+npm run start --workspace=@switchboard/mastra-bridge
+```
+
+Define `RELAY_BASE_URL`, `FEED_ID`, `AUTH_TOKEN`, and agent configuration via `packages/adapters/mastra-bridge/.env.example`.
+You can tune the runtime behavior with the following environment variables:
+
+- `BRIDGE_AGENT_ID` – identity used for published events (defaults to `mastra-bridge`).
+- `BRIDGE_ROUTING_TYPE` – feeds only events whose `type` matches the value (defaults to `task`).
+- `CLAIM_LEASE_MS` – lease duration in milliseconds when claiming a task (defaults to `120000`).
+
 ## Development
 
 ### Stopping the system

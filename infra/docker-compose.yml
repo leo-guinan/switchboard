@@ -74,6 +74,15 @@ services:
       - relay-api
       - mirror-worker
 
+  mastra-bridge:
+    build:
+      context: ..
+      dockerfile: packages/adapters/mastra-bridge/Dockerfile
+    env_file:
+      - ../packages/adapters/mastra-bridge/.env
+    depends_on:
+      - relay-api
+
   discord-adapter:
     build:
       context: ..

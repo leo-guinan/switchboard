@@ -9,17 +9,17 @@ COPY tsconfig.json ./
 COPY package*.json ./
 COPY package-lock.json ./
 COPY packages/shared/package*.json ./packages/shared/
-COPY packages/adapters/discord/package*.json ./packages/adapters/discord/
+COPY packages/adapters/mastra-bridge/package*.json ./packages/adapters/mastra-bridge/
 
 RUN npm install
 
-# Copy package sources
+# Copy sources
 COPY packages/shared ./packages/shared
-COPY packages/adapters/discord ./packages/adapters/discord
+COPY packages/adapters/mastra-bridge ./packages/adapters/mastra-bridge
 
-# Build shared types + Discord adapter
+# Build libraries
 RUN npm run build --workspace=@switchboard/shared
-RUN npm run build --workspace=@switchboard/discord-adapter
+RUN npm run build --workspace=@switchboard/mastra-bridge
 
-CMD ["npm", "run", "start", "--workspace=@switchboard/discord-adapter"]
+CMD ["npm", "run", "start", "--workspace=@switchboard/mastra-bridge"]
 
