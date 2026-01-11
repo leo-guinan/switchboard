@@ -74,6 +74,15 @@ services:
       - relay-api
       - mirror-worker
 
+  discord-adapter:
+    build:
+      context: ..
+      dockerfile: packages/adapters/discord/Dockerfile
+    env_file:
+      - ../packages/adapters/discord/.env
+    depends_on:
+      - relay-api
+
 volumes:
   pgdata:
   mirror-repo:

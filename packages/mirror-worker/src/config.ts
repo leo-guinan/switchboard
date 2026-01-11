@@ -19,14 +19,8 @@ export function getConfig(): Config {
     throw new Error("RELAY_URL environment variable is required");
   }
 
-  const feedIdsRaw = process.env.FEED_IDS;
-  if (!feedIdsRaw) {
-    throw new Error("FEED_IDS environment variable is required");
-  }
+  const feedIdsRaw = process.env.FEED_IDS || "";
   const feedIds = feedIdsRaw.split(",").map((id) => id.trim()).filter((id) => id.length > 0);
-  if (feedIds.length === 0) {
-    throw new Error("FEED_IDS must contain at least one feed ID");
-  }
 
   const contextRepoPath = process.env.CONTEXT_REPO_PATH;
   if (!contextRepoPath) {

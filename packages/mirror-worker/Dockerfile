@@ -33,9 +33,8 @@ COPY packages/shared ./packages/shared
 COPY packages/mirror-worker ./packages/mirror-worker
 RUN npm install --omit=dev
 
-# Build shared for runtime (needed for workspace dependencies)
-RUN npm run build --workspace=@switchboard/shared
-
+# Copy built artifacts from builder (shared and mirror-worker)
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/mirror-worker/dist ./packages/mirror-worker/dist
 
 # Create directory for context repo
