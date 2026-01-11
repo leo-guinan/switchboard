@@ -34,8 +34,8 @@ services:
 
   relay-api:
     build:
-      context: ../packages/relay-api
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: packages/relay-api/Dockerfile
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       PORT: 3000
@@ -46,6 +46,20 @@ services:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
+
+  mirror-worker:
+    build:
+      context: ..
+      dockerfile: packages/mirror-worker/Dockerfile
+    environment:
+      RELAY_URL: http://relay-api:3000
+      FEED_IDS: ""
+      CONTEXT_REPO_PATH: /data/context-repo
+      PORT: 3001
+    volumes:
+      - mirror-repo:/data/context-repo
+    depends_on:
+      - relay-api
 
   viewer-web:
     build:
@@ -58,6 +72,17 @@ services:
       - "5173:5173"
     depends_on:
       - relay-api
+      - mirror-worker
+
+  discord-adapter:
+    build:
+      context: ..
+      dockerfile: packages/adapters/discord/Dockerfile
+    env_file:
+      - ../packages/adapters/discord/.env
+    depends_on:
+      - relay-api
 
 volumes:
   pgdata:
+  mirror-repo:

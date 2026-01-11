@@ -56,6 +56,40 @@ docs/
 └── crp/             # Coordination protocol specs
 ```
 
+## Discord Adapter
+
+The `packages/adapters/discord` workspace ships a Discord bot that keeps a relay feed and a configured channel in sync:
+
+- **Inbound**: listens for messages in `DISCORD_CHANNEL_ID`, normalizes them into canonical `message` events, and POSTs them to `/v1/events`.
+- **Outbound**: subscribes to the feed SSE stream (`GET /v1/feeds/:id/stream`) and posts `task` events back into Discord (skip events that already came from Discord to avoid a loop).
+- **Task creation**: it registers a `/task` slash command so teammates can publish `task` events directly from Discord.
+
+### Configuration
+
+Copy the example env file, then populate your Discord + Relay credentials:
+
+```bash
+cp packages/adapters/discord/.env.example packages/adapters/discord/.env
+# edit the file with your bot token, guild/channel IDs, relay URL, and feed ID
+```
+
+### Running
+
+You can launch the adapter with the rest of the stack:
+
+```bash
+docker compose -f infra/docker-compose.yml up --build
+```
+
+Or build+run it manually while iterating:
+
+```bash
+npm run build --workspace=@switchboard/discord-adapter
+npm run start --workspace=@switchboard/discord-adapter
+```
+
+Slash commands are registered during startup, so restart the adapter whenever you change `/task`.
+
 ## Development
 
 ### Stopping the system

@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY packages/shared/package*.json ./packages/shared/
 COPY packages/viewer-web/package*.json ./packages/viewer-web/
+COPY tsconfig.json ./
 
 # Install dependencies
 RUN npm install
@@ -32,15 +33,8 @@ FROM nginx:alpine
 # Copy built assets to nginx html directory
 COPY --from=builder /app/packages/viewer-web/dist /usr/share/nginx/html
 
-# Copy custom nginx config for SPA routing
-RUN echo 'server { \
-    listen 5173; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Copy custom nginx config with reverse proxy for API routes
+COPY packages/viewer-web/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 5173
 
