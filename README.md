@@ -111,6 +111,15 @@ You can tune the runtime behavior with the following environment variables:
 - `BRIDGE_AGENT_ID` – identity used for published events (defaults to `mastra-bridge`).
 - `BRIDGE_ROUTING_TYPE` – feeds only events whose `type` matches the value (defaults to `task`).
 - `CLAIM_LEASE_MS` – lease duration in milliseconds when claiming a task (defaults to `120000`).
+- `RESEARCH_AGENT_ID` – identity used by the built-in research agent (defaults to `mastra-research`).
+- `RESEARCH_AGENT_INTENT` – task intent the research agent listens for (defaults to `research`).
+- `INTENT_ROUTING_AGENT_ID` – identity for the intent router (defaults to `mastra-intent-router`).
+- `INTENT_ROUTING_INTENTS` – comma-separated list of intents the router can assign (defaults to `research,writer,qa`).
+- `INTENT_ROUTING_DEFAULT_INTENT` – fallback intent when no keyword matches (defaults to `research`).
+Additional agent-specific controls:
+- `WRITER_AGENT_ID` – identity for the writer agent that consumes research results.
+- `SNAPSHOTTER_AGENT_ID` – identity for the snapshot agent that compresses state after proposals/results.
+- `LOG_FEED_ID` – optional feed dedicated to runtime logs so you can inspect the flow from the viewer.
 
 ## Development
 

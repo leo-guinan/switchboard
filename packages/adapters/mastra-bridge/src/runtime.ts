@@ -1,7 +1,11 @@
 import { createFeedSubscriber } from "./feed.js";
 import { createSwitchboardTools } from "./tools.js";
-import { ClaimStrategy, MastraAgent, runAgentWorker, RoutingPolicy } from "./worker.js";
-import type { Event } from "@switchboard/shared";
+import { runAgentWorker } from "./worker.js";
+import { createResearchAgent } from "./agents/researcher.js";
+import { createIntentRouter } from "./agents/intentRouter.js";
+import { createWriterAgent } from "./agents/writer.js";
+import { createSnapshotter } from "./agents/snapshotter.js";
+import { createLogPublisher } from "./logger.js";
 
 function requiredEnv(name: string): string {
   const value = process.env[name];
@@ -20,66 +24,90 @@ function parseLeaseMs(): number {
 
 const relayUrl = requiredEnv("RELAY_BASE_URL");
 const feedId = requiredEnv("FEED_ID");
-const agentId = process.env.BRIDGE_AGENT_ID ?? "mastra-bridge";
-const routingType = process.env.BRIDGE_ROUTING_TYPE ?? "task";
 const leaseMs = parseLeaseMs();
 
-const tools = createSwitchboardTools(relayUrl, feedId, {
-  authorIdentityId: agentId,
-});
+const tools = createSwitchboardTools(relayUrl, feedId, {});
 const subscriber = createFeedSubscriber(relayUrl, feedId);
+const logPublisher = createLogPublisher(relayUrl, process.env.LOG_FEED_ID);
 
-const routing: RoutingPolicy = (event: Event) => event.type === routingType;
+const researchAgentId = process.env.RESEARCH_AGENT_ID ?? "mastra-research";
+const researchIntent = process.env.RESEARCH_AGENT_INTENT ?? "research";
+const writerAgentId = process.env.WRITER_AGENT_ID ?? "mastra-writer";
+const snapshotterAgentId =
+  process.env.SNAPSHOTTER_AGENT_ID ?? "mastra-snapshotter";
 
-const agent: MastraAgent = {
-  id: agentId,
-  name: "Mastra bridge runtime",
-  async handle(event, runnerTools) {
-    console.log(
-      `[mastra-bridge] handling ${event.type} event ${event.event_id}`
-    );
+const intentRouterId =
+  process.env.INTENT_ROUTING_AGENT_ID ?? "mastra-intent-router";
+const intentRoutingIntents = (
+  process.env.INTENT_ROUTING_INTENTS ?? "research,writer,qa"
+)
+  .split(",")
+  .map((item) => item.trim())
+  .filter(Boolean);
+const intentRoutingDefault =
+  process.env.INTENT_ROUTING_DEFAULT_INTENT ?? "research";
 
-    if (event.type !== "task") return;
-
-    const result = await runnerTools.publishEvent({
-      type: "result",
-      payload: {
-        summary: `Mastra bridge observed task ${event.event_id} with payload ${JSON.stringify(
-          event.payload
-        )}`,
-        original_payload: event.payload,
-      },
-      refs: { task_event_id: event.event_id },
-    });
-
-    console.log(`[mastra-bridge] published result ${result.event_id}`);
+const research = createResearchAgent(
+  {
+    agentId: researchAgentId,
+    intent: researchIntent,
   },
-};
+  logPublisher
+);
 
-const claimStrategy: ClaimStrategy = {
-  async claim(event, runnerTools) {
-    if (event.type !== "task") {
-      return true;
-    }
-    return runnerTools.claimTask({
-      taskEventId: event.event_id,
-      agentId,
-      leaseDurationMs: leaseMs,
-    });
+const writer = createWriterAgent({ agentId: writerAgentId }, logPublisher);
+const snapshotter = createSnapshotter(
+  { agentId: snapshotterAgentId },
+  logPublisher
+);
+const intentRouter = createIntentRouter(
+  {
+    agentId: intentRouterId,
+    intents: intentRoutingIntents,
+    defaultIntent: intentRoutingDefault,
   },
-};
+  logPublisher
+);
 
 async function main(): Promise<void> {
-  const stop = await runAgentWorker({
-    agent,
-    tools,
-    subscriber,
-    routing,
-    claimStrategy,
+  logPublisher?.publish("info", "runtime starting", {
+    feed_id: feedId,
+    intents: intentRoutingIntents,
   });
 
+  const workers = await Promise.all([
+    runAgentWorker({
+      agent: intentRouter.agent,
+      tools,
+      subscriber,
+      routing: intentRouter.routing,
+      claimStrategy: intentRouter.claimStrategy,
+    }),
+    runAgentWorker({
+      agent: research.agent,
+      tools,
+      subscriber,
+      routing: research.routing,
+      claimStrategy: research.claimStrategy,
+    }),
+    runAgentWorker({
+      agent: writer.agent,
+      tools,
+      subscriber,
+      routing: writer.routing,
+      claimStrategy: writer.claimStrategy,
+    }),
+    runAgentWorker({
+      agent: snapshotter.agent,
+      tools,
+      subscriber,
+      routing: snapshotter.routing,
+      claimStrategy: snapshotter.claimStrategy,
+    }),
+  ]);
+
   const cleanup = () => {
-    stop();
+    workers.forEach((stop) => stop());
     process.exit(0);
   };
 

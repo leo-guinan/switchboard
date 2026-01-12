@@ -1,5 +1,5 @@
 import { getConfig, redactPat } from "./config.js";
-import { initRepo, writeEvent } from "./repo.js";
+import { initRepo, writeEvent, writeSnapshot } from "./repo.js";
 import { Committer } from "./committer.js";
 import { connectToFeed, SSEConnection } from "./sse.js";
 import { acquireLock, updateHeartbeat } from "./lock.js";
@@ -58,6 +58,9 @@ async function main(): Promise<void> {
     const connection = connectToFeed(config.relayUrl, feedId, async (event) => {
       const evt = event as Event;
       await writeEvent(config.contextRepoPath, evt);
+      if (evt.type === "snapshot") {
+        await writeSnapshot(config.contextRepoPath, evt);
+      }
       committer.addEvent(evt);
       // Update health state with latest event
       healthServer.updateLastEvent(evt.event_id, evt.ts);
